@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM de Vendas</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; padding: 20px; }
+        .container { width: 100%; max-width: 800px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; }
+        
+        .form-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #218838; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #007bff; color: white; }
+        
+        .badge { padding: 5px 10px; border-radius: 12px; font-size: 0.8em; font-weight: bold; background: #eee; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>🚀 Meus Leads (CRM)</h2>
+        
+        <div class="form-group">
+            <input type="text" id="nome" placeholder="Nome" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="text" id="telefone" placeholder="Telefone">
+            <button onclick="salvarLead()">Salvar</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Telefone</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-corpo">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const API = 'http://localhost:3000/leads';
+
+        async function carregar() {
+            const res = await fetch(API);
+            const leads = await res.json();
+            const html = leads.map(lead => `
+                <tr>
+                    <td>${lead.nome}</td>
+                    <td>${lead.email}</td>
+                    <td>${lead.telefone || '-'}</td>
+                    <td><span class="badge">${lead.status}</span></td>
+                </tr>
+            `).join('');
+            document.getElementById('tabela-corpo').innerHTML = html;
+        }
+
+        async function salvarLead() {
+            const nome = document.getElementById('nome').value;
+            const email = document.getElementById('email').value;
+            const telefone = document.getElementById('telefone').value;
+
+            const res = await fetch(API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, email, telefone })
+            });
+
+            if (res.ok) {
+                alert('Salvo com sucesso!');
+                carregar(); // Recarrega a lista
+                // Limpa os campos
+                document.getElementById('nome').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('telefone').value = '';
+            } else {
+                alert('Erro! Verifique se o email já existe.');
+            }
+        }
+
+        // Carregar ao abrir a página
+        carregar();
+    </script>
+
+</body>
+</html>

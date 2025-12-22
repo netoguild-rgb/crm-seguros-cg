@@ -1,0 +1,56 @@
+// ARQUIVO: prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Lead {
+  id              Int      @id @default(autoincrement())
+  criadoEm        DateTime @default(now())
+  
+  // --- DADOS PESSOAIS ---
+  nome            String   // Recebe 'nome' ou 'Nome_completo'
+  whatsapp        String   // Recebe 'whatsapp'
+  profissao       String?
+  idade_condutor  String?  // Recebe 'idade_do_condutor' ou 'idades_saude'
+
+  // --- TIPO E OBS ---
+  tipo_seguro     String?
+  obs_final       String?
+
+  // --- SEGURO AUTO ---
+  renavan             String?
+  placa               String?
+  ano_veiculo         String? // Recebe 'ano_do_veiculo'
+  modelo_veiculo      String?
+  uso_veiculo         String?
+  condutor_principal  String?
+  cobertura_roubo     String?
+  cobertura_terceiros String?
+  carro_reserva       String?
+  km_guincho          String?
+
+  // --- SEGURO VIDA ---
+  capital_vida    String?
+  motivo_vida     String?
+
+  // --- SEGURO SAÚDE ---
+  preferencia_rede String?
+  plano_saude      String? // Se tem plano atual
+  
+  // Histórico (Mantivemos para garantir funcionalidade futura)
+  interacoes      Interacao[]
+}
+
+model Interacao {
+  id        Int      @id @default(autoincrement())
+  texto     String
+  data      DateTime @default(now())
+  leadId    Int
+  lead      Lead     @relation(fields: [leadId], references: [id])
+}
