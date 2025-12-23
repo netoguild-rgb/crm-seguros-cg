@@ -1,4 +1,4 @@
-// ARQUIVO: prisma/schema.prisma
+// ARQUIVO: backend/prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
@@ -10,23 +10,18 @@ datasource db {
 }
 
 model Lead {
-  id              Int      @id @default(autoincrement())
-  criadoEm        DateTime @default(now())
+  id                  Int      @id @default(autoincrement())
+  nome                String
+  whatsapp            String
+  profissao           String?
+  idade_condutor      String?
+  tipo_seguro         String?
+  obs_final           String?
   
-  // --- DADOS PESSOAIS ---
-  nome            String   // Recebe 'nome' ou 'Nome_completo'
-  whatsapp        String   // Recebe 'whatsapp'
-  profissao       String?
-  idade_condutor  String?  // Recebe 'idade_do_condutor' ou 'idades_saude'
-
-  // --- TIPO E OBS ---
-  tipo_seguro     String?
-  obs_final       String?
-
-  // --- SEGURO AUTO ---
+  // Dados Auto
   renavan             String?
   placa               String?
-  ano_veiculo         String? // Recebe 'ano_do_veiculo'
+  ano_veiculo         String?
   modelo_veiculo      String?
   uso_veiculo         String?
   condutor_principal  String?
@@ -35,22 +30,13 @@ model Lead {
   carro_reserva       String?
   km_guincho          String?
 
-  // --- SEGURO VIDA ---
-  capital_vida    String?
-  motivo_vida     String?
+  // Dados Vida/Saúde
+  capital_vida        String?
+  motivo_vida         String?
+  preferencia_rede    String?
+  plano_saude         String?
 
-  // --- SEGURO SAÚDE ---
-  preferencia_rede String?
-  plano_saude      String? // Se tem plano atual
-  
-  // Histórico (Mantivemos para garantir funcionalidade futura)
-  interacoes      Interacao[]
-}
-
-model Interacao {
-  id        Int      @id @default(autoincrement())
-  texto     String
-  data      DateTime @default(now())
-  leadId    Int
-  lead      Lead     @relation(fields: [leadId], references: [id])
+  // Gestão
+  status              String   @default("NOVO")
+  criadoEm            DateTime @default(now())
 }
