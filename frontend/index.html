@@ -272,7 +272,7 @@
 
     <script>
         // --- CONFIGURAÇÃO ---
-        const API_URL = 'https://crm-seguros.onrender.com/leads'; // Sua URL
+        const API_URL = 'https://crm-seguros.onrender.com/leads'; // URL do Backend
         let todosLeads = [];
         let leadSelecionadoId = null;
         let chartInstance = null;
@@ -282,7 +282,7 @@
         // --- INICIALIZAÇÃO ---
         document.addEventListener('DOMContentLoaded', () => {
             carregarDados();
-            configurarDragAndDrop(); // Ativa o arrastar
+            configurarDragAndDrop();
         });
 
         function toggleLoader(show) {
@@ -304,7 +304,7 @@
                 renderizarKanban();
             } catch (error) {
                 console.error("Erro:", error);
-                alert("Erro ao conectar com o servidor.");
+                alert("Erro ao conectar com o servidor. Verifique se o Render está ativo.");
             } finally {
                 toggleLoader(false);
             }
@@ -317,15 +317,14 @@
 
             todosLeads.forEach(lead => {
                 const dataFormatada = new Date(lead.criadoEm).toLocaleDateString('pt-BR', {day:'2-digit', month:'short'});
-                const tipo = lead.tipo_seguro || lead.dados_extras?.tipo_seguro || 'Geral';
+                let tipo = lead.tipo_seguro || (lead.dados_extras && lead.dados_extras.tipo_seguro) || 'Geral';
                 
-                // Tenta achar placa ou modelo nos dados extras
                 let detalheVeiculo = lead.placa || (lead.dados_extras ? lead.dados_extras.placa : '') || '';
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="ps-4">
-                        <div class="fw-bold text-dark">${lead.nome}</div>
+                        <div class="fw-bold text-dark">${lead.nome || 'Sem Nome'}</div>
                         <small class="text-muted" style="font-size: 0.75rem">${dataFormatada}</small>
                     </td>
                     <td>
@@ -350,10 +349,8 @@
 
         // --- 3. KANBAN COM DRAG & DROP ---
         function renderizarKanban() {
-            // Limpa colunas
             ['NOVO', 'NEGOCIACAO', 'FECHADO', 'PERDIDO'].forEach(status => {
                 document.getElementById(`coluna-${status}`).innerHTML = '';
-                // Contador
                 const count = todosLeads.filter(l => (l.status || 'NOVO') === status).length;
                 document.getElementById(`count-${status.toLowerCase()}`).innerText = count;
             });
@@ -363,19 +360,18 @@
                 const col = document.getElementById(`coluna-${status}`);
                 if (!col) return;
 
-                const tipo = lead.tipo_seguro || (lead.dados_extras?.tipo_seguro) || 'Geral';
+                const tipo = lead.tipo_seguro || (lead.dados_extras && lead.dados_extras.tipo_seguro) || 'Geral';
                 
                 const card = document.createElement('div');
                 card.className = `kanban-card border-${status}`;
-                card.setAttribute('data-id', lead.id); // Importante para o Drag&Drop
+                card.setAttribute('data-id', lead.id);
                 
-                // Conteúdo do Card
                 card.innerHTML = `
                     <div class="d-flex justify-content-between mb-1">
                         <span class="badge bg-light text-secondary border">${tipo}</span>
                         <small class="text-muted" style="font-size:0.7rem">${new Date(lead.criadoEm).toLocaleDateString('pt-BR')}</small>
                     </div>
-                    <div class="fw-bold mb-2 text-dark">${lead.nome}</div>
+                    <div class="fw-bold mb-2 text-dark">${lead.nome || 'Sem Nome'}</div>
                     <div class="d-flex justify-content-between align-items-center mt-2">
                         <button class="btn btn-xs btn-light text-primary py-0" style="font-size:0.8rem" onclick="abrirModal(${lead.id})">Ver</button>
                         <i class="fab fa-whatsapp text-success"></i>
@@ -389,18 +385,15 @@
             const colunas = document.querySelectorAll('.kanban-list');
             colunas.forEach(coluna => {
                 new Sortable(coluna, {
-                    group: 'kanban', // Permite mover entre colunas do mesmo grupo
+                    group: 'kanban',
                     animation: 150,
-                    ghostClass: 'bg-light', // Estilo do espaço onde vai cair
+                    ghostClass: 'bg-light',
                     onEnd: function (evt) {
                         const itemEl = evt.item;
                         const novoStatus = evt.to.getAttribute('data-status');
                         const leadId = itemEl.getAttribute('data-id');
                         
-                        // Atualiza visualmente a cor da borda instantaneamente
                         itemEl.className = itemEl.className.replace(/border-\w+/, `border-${novoStatus}`);
-                        
-                        // Salva no banco
                         atualizarStatusNoBanco(leadId, novoStatus);
                     }
                 });
@@ -414,64 +407,70 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ status: novoStatus })
                 });
-                // Atualiza array local sem recarregar tudo
                 const lead = todosLeads.find(l => l.id == id);
                 if(lead) lead.status = novoStatus;
-                atualizarDashboard(); // Recalcula contadores
+                atualizarDashboard();
             } catch (e) {
                 console.error("Erro ao salvar arraste", e);
                 alert("Erro ao salvar mudança de status.");
             }
         }
 
-        // --- 4. MODAL INTELIGENTE (RESOLUÇÃO DO PROBLEMA DE DADOS) ---
+        // --- 4. MODAL TURBO (CORRIGIDO PARA MOSTRAR TUDO) ---
         function abrirModal(id) {
             const lead = todosLeads.find(l => l.id === id);
             if (!lead) return;
             leadSelecionadoId = id;
 
-            // Header
-            document.getElementById('modal-nome').innerText = lead.nome;
-            document.getElementById('modal-tipo').innerText = lead.tipo_seguro || (lead.dados_extras?.tipo_seguro) || 'Lead';
+            // Debug no Console
+            console.log("DADOS DO LEAD:", lead);
+
+            // Cabeçalho
+            document.getElementById('modal-nome').innerText = lead.nome || 'Sem Nome';
+            
+            let tipo = lead.tipo_seguro || (lead.dados_extras && lead.dados_extras.tipo_seguro) || 'Geral';
+            document.getElementById('modal-tipo').innerText = tipo;
+            
             document.getElementById('modal-select-status').value = lead.status || 'NOVO';
             document.getElementById('btn-whats-modal').href = `https://wa.me/55${limparWhats(lead.whatsapp)}`;
 
-            // LISTAGEM DE DADOS (O FIX PRINCIPAL)
+            // Lista de Dados
             const container = document.getElementById('modal-lista-dados');
             container.innerHTML = '';
 
-            // 1. Clona o lead principal
-            let dadosCompletos = { ...lead };
+            // Mistura Dados principais + Dados Extras
+            let dadosMisturados = { ...lead };
 
-            // 2. Se tiver 'dados_extras', espalha eles no objeto principal
-            if (lead.dados_extras && typeof lead.dados_extras === 'object') {
-                dadosCompletos = { ...lead.dados_extras, ...dadosCompletos };
+            if (lead.dados_extras) {
+                let extras = lead.dados_extras;
+                if (typeof extras === 'string') {
+                    try { extras = JSON.parse(extras); } catch (e) { console.warn("Erro parsing JSON"); }
+                }
+                // Mescla tudo no objeto principal
+                dadosMisturados = { ...dadosMisturados, ...extras };
             }
 
-            // Lista negra (campos que não queremos mostrar no detalhe)
+            // O que NÃO deve aparecer na lista (chaves técnicas)
             const ignorar = ['id', 'dados_extras', 'updatedAt', 'criadoEm', 'status', 'nome', 'whatsapp', 'email', 'cpf'];
 
-            // Dicionário de Nomes Bonitos
+            // Nomes amigáveis
             const nomesAmigaveis = {
                 placa: 'Placa do Veículo',
                 renavan: 'Renavam',
                 modelo_veiculo: 'Modelo',
-                ano_veiculo: 'Ano Fab/Mod',
-                fipe: 'Código FIPE',
-                uso_veiculo: 'Uso',
-                cep_pernoite: 'CEP Pernoite',
+                ano_veiculo: 'Ano',
                 profissao: 'Profissão',
-                estado_civil: 'Estado Civil',
-                condutor_principal: 'É o condutor?',
-                idade_condutor: 'Idade Condutor',
-                tipo_seguro: 'Interesse',
+                idade_condutor: 'Idade',
                 obs_final: 'Observações',
-                obs: 'Observações'
+                tipo_seguro: 'Interesse',
+                fipe: 'Tabela FIPE',
+                cep_pernoite: 'CEP',
+                condutor_principal: 'É Condutor Principal?',
+                uso_veiculo: 'Uso do Veículo'
             };
 
-            // Gera as linhas
-            for (const [key, value] of Object.entries(dadosCompletos)) {
-                // Pula vazios ou itens da lista negra
+            // Gera a lista
+            for (const [key, value] of Object.entries(dadosMisturados)) {
                 if (!value || value === '' || ignorar.includes(key)) continue;
 
                 const label = nomesAmigaveis[key] || key.replace(/_/g, ' ').toUpperCase();
@@ -494,8 +493,8 @@
             await atualizarStatusNoBanco(leadSelecionadoId, novoStatus);
             toggleLoader(false);
             modalDetalhes.hide();
-            renderizarKanban(); // Atualiza posições
-            renderizarTabela(); // Atualiza tabela
+            renderizarKanban();
+            renderizarTabela();
         }
 
         // --- EXTRAS ---
@@ -504,19 +503,18 @@
             document.getElementById('dash-fechados').innerText = todosLeads.filter(l => l.status === 'FECHADO').length;
             
             const auto = todosLeads.filter(l => {
-                const tipo = (l.tipo_seguro || l.dados_extras?.tipo_seguro || '').toLowerCase();
-                return tipo.includes('auto') || tipo.includes('carro') || tipo.includes('moto') || l.placa;
+                const tipo = (l.tipo_seguro || (l.dados_extras?.tipo_seguro) || '').toLowerCase();
+                return tipo.includes('auto') || tipo.includes('carro') || tipo.includes('moto') || l.placa || (l.dados_extras?.placa);
             }).length;
             
             const vida = todosLeads.filter(l => {
-                 const tipo = (l.tipo_seguro || l.dados_extras?.tipo_seguro || '').toLowerCase();
+                 const tipo = (l.tipo_seguro || (l.dados_extras?.tipo_seguro) || '').toLowerCase();
                  return tipo.includes('vida') || tipo.includes('saude') || tipo.includes('odont');
             }).length;
 
             document.getElementById('dash-auto').innerText = auto;
             document.getElementById('dash-vida').innerText = vida;
 
-            // Gráfico
             const ctx = document.getElementById('graficoDashboard').getContext('2d');
             if (chartInstance) chartInstance.destroy();
             chartInstance = new Chart(ctx, {
