@@ -3,235 +3,472 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRM Admin - Seguros</title>
+    <title>CG Seguros - Sistema de Gestão</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+        :root { --sidebar-width: 260px; --primary-color: #0d6efd; --bg-light: #f4f6f9; }
+        body { background-color: var(--bg-light); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
         
-        /* Sidebar Lateral */
-        .sidebar { height: 100vh; width: 250px; position: fixed; top: 0; left: 0; background-color: #343a40; color: white; padding-top: 20px; }
-        .sidebar a { padding: 15px 25px; text-decoration: none; font-size: 1.1rem; color: #adb5bd; display: block; }
-        .sidebar a:hover, .sidebar a.active { color: white; background-color: #0d6efd; }
-        .sidebar i { width: 25px; }
-        
-        /* Conteúdo Principal */
-        .main-content { margin-left: 250px; padding: 20px; }
-        
-        /* Cards de Métricas */
-        .stat-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; }
-        .stat-icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-        
-        /* Tabela Profissional */
-        .table-responsive { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .status-select { border: none; font-size: 0.85rem; font-weight: bold; padding: 5px 10px; border-radius: 20px; cursor: pointer; }
-        .status-NOVO { background-color: #cff4fc; color: #055160; }
-        .status-NEGOCIACAO { background-color: #fff3cd; color: #856404; }
-        .status-FECHADO { background-color: #d1e7dd; color: #0f5132; }
-        .status-PERDIDO { background-color: #f8d7da; color: #842029; }
-
-        /* Ajuste para Mobile */
-        @media (max-width: 768px) {
-            .sidebar { width: 100%; height: auto; position: relative; }
-            .main-content { margin-left: 0; }
+        /* SIDEBAR (Menu Lateral) */
+        .sidebar { 
+            height: 100vh; width: var(--sidebar-width); position: fixed; top: 0; left: 0; 
+            background-color: #212529; color: white; transition: all 0.3s; z-index: 1000;
         }
+        .sidebar-header { padding: 25px 20px; border-bottom: 1px solid #343a40; }
+        .nav-link { 
+            padding: 15px 25px; color: #adb5bd; font-size: 1rem; display: flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; border-left: 4px solid transparent; 
+        }
+        .nav-link:hover, .nav-link.active { color: white; background-color: rgba(255,255,255,0.05); border-left-color: var(--primary-color); }
+        .nav-link i { width: 20px; text-align: center; }
+
+        /* CONTEÚDO PRINCIPAL */
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; transition: all 0.3s; }
+        
+        /* CARTÕES e PAINEIS */
+        .card-panel { background: white; border-radius: 12px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; padding: 20px; }
+        .stat-card { display: flex; align-items: center; justify-content: space-between; padding: 25px; }
+        .stat-icon { width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+        
+        /* SEÇÕES (Views) */
+        .view-section { display: none; animation: fadeIn 0.4s; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* KANBAN (Aba Campanhas) */
+        .kanban-board { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; }
+        .kanban-column { flex: 1; min-width: 300px; background: #e9ecef; border-radius: 10px; padding: 15px; }
+        .kanban-header { font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; color: #495057; text-transform: uppercase; font-size: 0.85rem; }
+        .kanban-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 4px solid #ccc; cursor: pointer; transition: transform 0.2s; }
+        .kanban-card:hover { transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
+        
+        /* CORES DE STATUS */
+        .border-NOVO { border-left-color: #0dcaf0 !important; }
+        .border-NEGOCIACAO { border-left-color: #ffc107 !important; }
+        .border-FECHADO { border-left-color: #198754 !important; }
+        .border-PERDIDO { border-left-color: #dc3545 !important; }
+
+        /* MODAL DETALHES */
+        .modal-details-row { border-bottom: 1px solid #eee; padding: 8px 0; display: flex; justify-content: space-between; }
+        .modal-details-label { font-weight: 600; color: #6c757d; }
+        .modal-details-value { font-weight: 500; color: #212529; text-align: right; }
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 100%; z-index: 9999; }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .mobile-toggle { display: block !important; }
+        }
+        .mobile-toggle { display: none; font-size: 1.5rem; cursor: pointer; margin-bottom: 20px; color: #333; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar d-none d-md-block">
-        <h4 class="text-center mb-4"><i class="fas fa-shield-alt"></i> CRM Admin</h4>
-        <a href="#" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
-        <a href="#"><i class="fas fa-users"></i> Leads</a>
-        <a href="#"><i class="fas fa-bullhorn"></i> Campanhas</a>
-        <a href="#" onclick="carregarLeads()"><i class="fas fa-sync"></i> Atualizar</a>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header d-flex justify-content-between align-items-center">
+            <h4 class="m-0 text-white"><i class="fas fa-shield-alt text-primary me-2"></i>CG CRM</h4>
+            <button class="btn btn-sm btn-outline-light d-md-none" onclick="toggleSidebar()">✕</button>
+        </div>
+        <nav class="mt-4">
+            <a class="nav-link active" onclick="switchView('dashboard', this)"><i class="fas fa-chart-pie"></i> Dashboard</a>
+            <a class="nav-link" onclick="switchView('leads', this)"><i class="fas fa-list"></i> Todos os Leads</a>
+            <a class="nav-link" onclick="switchView('campanhas', this)"><i class="fas fa-tasks"></i> Campanhas (Kanban)</a>
+            <hr class="border-secondary mx-3">
+            <a class="nav-link" onclick="carregarDados()"><i class="fas fa-sync-alt"></i> Atualizar Dados</a>
+        </nav>
     </div>
 
     <div class="main-content">
-        
-        <h3 class="mb-4 text-secondary">Visão Geral</h3>
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div>
-                        <h6 class="text-muted">Total Leads</h6>
-                        <h3 id="total-leads">0</h3>
+        <i class="fas fa-bars mobile-toggle" onclick="toggleSidebar()"></i>
+
+        <div id="view-dashboard" class="view-section active">
+            <h3 class="mb-4 text-dark fw-bold">Visão Geral</h3>
+            
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card-panel stat-card">
+                        <div><h6 class="text-muted text-uppercase small fw-bold">Total Leads</h6><h2 class="mb-0 fw-bold" id="dash-total">0</h2></div>
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-users"></i></div>
                     </div>
-                    <div class="stat-icon bg-primary text-white"><i class="fas fa-user-friends"></i></div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card-panel stat-card">
+                        <div><h6 class="text-muted text-uppercase small fw-bold">Auto</h6><h2 class="mb-0 fw-bold" id="dash-auto">0</h2></div>
+                        <div class="stat-icon bg-info bg-opacity-10 text-info"><i class="fas fa-car"></i></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card-panel stat-card">
+                        <div><h6 class="text-muted text-uppercase small fw-bold">Vida/Saúde</h6><h2 class="mb-0 fw-bold" id="dash-vida">0</h2></div>
+                        <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="fas fa-heartbeat"></i></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card-panel stat-card">
+                        <div><h6 class="text-muted text-uppercase small fw-bold">Fechados</h6><h2 class="mb-0 fw-bold text-success" id="dash-fechados">0</h2></div>
+                        <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="fas fa-check-circle"></i></div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div>
-                        <h6 class="text-muted">Auto</h6>
-                        <h3 id="total-auto">0</h3>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card-panel">
+                        <h5 class="mb-3">Desempenho por Produto</h5>
+                        <canvas id="graficoDashboard"></canvas>
                     </div>
-                    <div class="stat-icon bg-info text-white"><i class="fas fa-car"></i></div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div>
-                        <h6 class="text-muted">Vida/Saúde</h6>
-                        <h3 id="total-vida">0</h3>
+                <div class="col-md-6">
+                    <div class="card-panel h-100 d-flex flex-column justify-content-center text-center">
+                        <i class="fas fa-trophy text-warning mb-3" style="font-size: 3rem;"></i>
+                        <h5>Gerencie seus leads com eficiência</h5>
+                        <p class="text-muted">Use as abas laterais para visualizar detalhes ou mover leads pelo funil de vendas.</p>
+                        <button class="btn btn-primary mt-3" onclick="switchView('campanhas', document.querySelectorAll('.nav-link')[2])">Ir para Campanhas</button>
                     </div>
-                    <div class="stat-icon bg-danger text-white"><i class="fas fa-heartbeat"></i></div>
                 </div>
             </div>
         </div>
 
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="table-responsive h-100">
-                    <h5 class="mb-3">Distribuição por Seguro</h5>
-                    <canvas id="graficoLeads"></canvas>
-                </div>
+        <div id="view-leads" class="view-section">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold">Gestão de Leads</h3>
+                <input type="text" id="filtro-tabela" class="form-control w-25" placeholder="🔍 Buscar nome, placa..." onkeyup="filtrarLeads()">
             </div>
-            
-            <div class="col-md-8">
+
+            <div class="card-panel p-0 overflow-hidden">
                 <div class="table-responsive">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">Gerenciamento de Leads</h5>
-                        <input type="text" id="busca" class="form-control w-25" placeholder="Buscar nome..." onkeyup="filtrarTabela()">
-                    </div>
-                    
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
                             <tr>
-                                <th>Nome</th>
-                                <th>Tipo</th>
+                                <th class="ps-4">Nome / Data</th>
+                                <th>Produto</th>
+                                <th>Status</th>
                                 <th>Contato</th>
-                                <th>Status (Gestão)</th>
-                                <th>Ações</th>
+                                <th class="text-end pe-4">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="tabela-leads">
+                        <tbody id="tabela-corpo">
                             </tbody>
                     </table>
                 </div>
             </div>
         </div>
+
+        <div id="view-campanhas" class="view-section">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold">Funil de Vendas (CRM)</h3>
+                <span class="text-muted small"><i class="fas fa-info-circle"></i> Arraste visualmente em breve. Por enquanto use o modal.</span>
+            </div>
+
+            <div class="kanban-board">
+                <div class="kanban-column">
+                    <div class="kanban-header text-info">Novos Leads <span class="badge bg-white text-dark ms-2" id="count-novo">0</span></div>
+                    <div id="coluna-NOVO"></div>
+                </div>
+                <div class="kanban-column">
+                    <div class="kanban-header text-warning">Em Negociação <span class="badge bg-white text-dark ms-2" id="count-negociacao">0</span></div>
+                    <div id="coluna-NEGOCIACAO"></div>
+                </div>
+                <div class="kanban-column">
+                    <div class="kanban-header text-success">Venda Fechada <span class="badge bg-white text-dark ms-2" id="count-fechado">0</span></div>
+                    <div id="coluna-FECHADO"></div>
+                </div>
+                 <div class="kanban-column">
+                    <div class="kanban-header text-danger">Perdidos <span class="badge bg-white text-dark ms-2" id="count-perdido">0</span></div>
+                    <div id="coluna-PERDIDO"></div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <script>
-        // 👇 SEU LINK DO RENDER AQUI 👇
-        const API_URL = 'https://crm-seguros.onrender.com/leads'; 
-        
-        let allLeads = [];
-        let chartInstance = null;
+    <div class="modal fade" id="modalDetalhes" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold" id="modal-titulo">Detalhes do Lead</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 80px; height: 80px; font-size: 2rem;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <h5 id="modal-nome" class="fw-bold">Nome Cliente</h5>
+                            <span id="modal-tipo" class="badge bg-secondary mb-2">Tipo</span>
+                            
+                            <div class="d-grid gap-2 mt-3">
+                                <a id="btn-whats-modal" href="#" target="_blank" class="btn btn-success"><i class="fab fa-whatsapp"></i> Chamar no Whats</a>
+                            </div>
 
-        async function carregarLeads() {
+                            <hr>
+                            <label class="small text-muted fw-bold">Mudar Status:</label>
+                            <select id="modal-select-status" class="form-select mt-1">
+                                <option value="NOVO">Novo</option>
+                                <option value="NEGOCIACAO">Em Negociação</option>
+                                <option value="FECHADO">Venda Fechada</option>
+                                <option value="PERDIDO">Perdido</option>
+                            </select>
+                            <button class="btn btn-primary btn-sm mt-2 w-100" onclick="salvarStatusModal()">Salvar Status</button>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <h6 class="text-primary fw-bold mb-3"><i class="fas fa-file-alt me-1"></i> Todas as Variáveis Coletadas</h6>
+                            <div id="modal-lista-dados" class="px-2" style="max-height: 400px; overflow-y: auto;">
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // CONFIGURAÇÃO
+        const API_URL = 'https://crm-seguros.onrender.com/leads';
+        let todosLeads = [];
+        let leadSelecionadoId = null;
+        let chartInstance = null;
+        const modalDetalhes = new bootstrap.Modal(document.getElementById('modalDetalhes'));
+
+        // INICIALIZAÇÃO
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarDados();
+        });
+
+        // 1. NAVEGAÇÃO ENTRE ABAS
+        function switchView(viewName, element) {
+            // Esconde todas as seções
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            // Mostra a selecionada
+            document.getElementById('view-' + viewName).classList.add('active');
+            
+            // Atualiza menu ativo
+            if (element) {
+                document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+                element.classList.add('active');
+            }
+
+            // Se for mobile, fecha o menu
+            if(window.innerWidth < 768) toggleSidebar();
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+
+        // 2. CARREGAR DADOS DO BACKEND
+        async function carregarDados() {
             try {
                 const res = await fetch(API_URL);
-                allLeads = await res.json();
+                todosLeads = await res.json();
                 
-                atualizarMetricas();
-                renderizarTabela(allLeads);
-                renderizarGrafico();
+                atualizarDashboard();
+                renderizarTabela();
+                renderizarKanban();
             } catch (error) {
-                console.error("Erro ao carregar", error);
+                console.error("Erro:", error);
                 alert("Erro ao conectar com o servidor.");
             }
         }
 
-        function atualizarMetricas() {
-            document.getElementById('total-leads').innerText = allLeads.length;
-            document.getElementById('total-auto').innerText = allLeads.filter(l => (l.tipo_seguro||'').includes('Auto')).length;
-            document.getElementById('total-vida').innerText = allLeads.filter(l => (l.tipo_seguro||'').match(/Vida|Saude/i)).length;
+        // 3. RENDERIZAR DASHBOARD (Gráficos e KPIs)
+        function atualizarDashboard() {
+            // Contagens
+            document.getElementById('dash-total').innerText = todosLeads.length;
+            document.getElementById('dash-fechados').innerText = todosLeads.filter(l => l.status === 'FECHADO').length;
+            
+            const autoCount = todosLeads.filter(l => (l.tipo_seguro||'').includes('Auto') || l.placa).length;
+            const vidaCount = todosLeads.filter(l => (l.tipo_seguro||'').match(/Vida|Saude/i)).length;
+            
+            document.getElementById('dash-auto').innerText = autoCount;
+            document.getElementById('dash-vida').innerText = vidaCount;
+
+            // Gráfico
+            const ctx = document.getElementById('graficoDashboard').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+            
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Auto', 'Vida/Saúde', 'Outros'],
+                    datasets: [{
+                        label: 'Leads por Produto',
+                        data: [autoCount, vidaCount, todosLeads.length - (autoCount + vidaCount)],
+                        backgroundColor: ['#0dcaf0', '#dc3545', '#ffc107'],
+                        borderRadius: 5
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
         }
 
-        function renderizarTabela(leads) {
-            const tbody = document.getElementById('tabela-leads');
+        // 4. RENDERIZAR TABELA (Aba Leads)
+        function renderizarTabela() {
+            const tbody = document.getElementById('tabela-corpo');
             tbody.innerHTML = '';
 
-            leads.forEach(lead => {
-                const status = lead.status || 'NOVO';
+            todosLeads.forEach(lead => {
+                const dataFormatada = new Date(lead.criadoEm).toLocaleDateString('pt-BR');
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>
-                        <div class="fw-bold">${lead.nome}</div>
-                        <small class="text-muted" style="font-size:11px">${new Date(lead.criadoEm).toLocaleDateString()}</small>
+                    <td class="ps-4">
+                        <div class="fw-bold text-dark">${lead.nome}</div>
+                        <small class="text-muted" style="font-size: 0.75rem"><i class="far fa-clock me-1"></i> ${dataFormatada}</small>
                     </td>
-                    <td><span class="badge bg-secondary">${lead.tipo_seguro || '-'}</span></td>
-                    <td>
-                        <a href="https://wa.me/55${lead.whatsapp.replace(/\D/g,'')}" target="_blank" class="text-success text-decoration-none fw-bold">
-                            <i class="fab fa-whatsapp"></i> Whats
-                        </a>
-                    </td>
-                    <td>
-                        <select class="status-select status-${status}" onchange="mudarStatus(${lead.id}, this)">
-                            <option value="NOVO" ${status==='NOVO'?'selected':''}>Novo</option>
-                            <option value="NEGOCIACAO" ${status==='NEGOCIACAO'?'selected':''}>Em Negociação</option>
-                            <option value="FECHADO" ${status==='FECHADO'?'selected':''}>Venda Fechada</option>
-                            <option value="PERDIDO" ${status==='PERDIDO'?'selected':''}>Perdido</option>
-                        </select>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-info" onclick="verDetalhes('${lead.nome}', '${lead.obs_final || ''}', '${lead.modelo_veiculo || ''}')"><i class="fas fa-eye"></i></button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deletarLead(${lead.id})"><i class="fas fa-trash"></i></button>
+                    <td><span class="badge bg-light text-dark border">${lead.tipo_seguro || 'Geral'}</span></td>
+                    <td>${getStatusBadge(lead.status)}</td>
+                    <td>${lead.whatsapp}</td>
+                    <td class="text-end pe-4">
+                        <button class="btn btn-sm btn-outline-primary" onclick="abrirModal(${lead.id})">
+                            <i class="fas fa-eye"></i> Ver Tudo
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        async function mudarStatus(id, selectElement) {
-            const novoStatus = selectElement.value;
-            // Muda a cor visualmente na hora
-            selectElement.className = `status-select status-${novoStatus}`;
-            
-            // Atualiza no banco
-            await fetch(`${API_URL}/${id}`, {
-                method: 'PATCH',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ status: novoStatus })
+        // 5. RENDERIZAR KANBAN (Aba Campanhas)
+        function renderizarKanban() {
+            // Limpa colunas
+            ['NOVO', 'NEGOCIACAO', 'FECHADO', 'PERDIDO'].forEach(status => {
+                document.getElementById(`coluna-${status}`).innerHTML = '';
+                // Contador
+                const count = todosLeads.filter(l => (l.status || 'NOVO') === status).length;
+                document.getElementById(`count-${status.toLowerCase()}`).innerText = count;
+            });
+
+            todosLeads.forEach(lead => {
+                const status = lead.status || 'NOVO';
+                const col = document.getElementById(`coluna-${status}`);
+                if (!col) return; // Segurança
+
+                const card = document.createElement('div');
+                card.className = `kanban-card border-${status}`;
+                card.onclick = () => abrirModal(lead.id); // Clicar no card abre modal
+                card.innerHTML = `
+                    <div class="fw-bold">${lead.nome}</div>
+                    <div class="small text-muted mb-2">${lead.tipo_seguro || 'Geral'}</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-secondary"><i class="fas fa-car"></i> ${lead.modelo_veiculo || lead.plano_saude || '-'}</small>
+                        <i class="fab fa-whatsapp text-success"></i>
+                    </div>
+                `;
+                col.appendChild(card);
             });
         }
 
-        async function deletarLead(id) {
-            if(confirm('Tem certeza que deseja EXCLUIR este lead?')) {
-                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-                carregarLeads(); // Recarrega a lista
+        // 6. MODAL DE DETALHES (O Grande Segredo)
+        function abrirModal(id) {
+            const lead = todosLeads.find(l => l.id === id);
+            if (!lead) return;
+
+            leadSelecionadoId = id;
+            
+            // Preenche cabeçalho
+            document.getElementById('modal-nome').innerText = lead.nome;
+            document.getElementById('modal-tipo').innerText = lead.tipo_seguro || 'Lead';
+            document.getElementById('modal-select-status').value = lead.status || 'NOVO';
+            
+            const whatsClean = lead.whatsapp.replace(/\D/g,'');
+            document.getElementById('btn-whats-modal').href = `https://wa.me/55${whatsClean}`;
+
+            // Preenche lista de variáveis (Loop inteligente)
+            const container = document.getElementById('modal-lista-dados');
+            container.innerHTML = '';
+
+            // Mapeamento de nomes amigáveis (opcional, senão usa a chave crua)
+            const labels = {
+                id: 'ID Sistema', nome: 'Nome Completo', whatsapp: 'WhatsApp', profissao: 'Profissão',
+                idade_condutor: 'Idade', tipo_seguro: 'Tipo Seguro', obs_final: 'Observação',
+                renavan: 'Renavam', placa: 'Placa', ano_veiculo: 'Ano Veículo', 
+                modelo_veiculo: 'Modelo', uso_veiculo: 'Uso', condutor_principal: 'Condutor Principal',
+                cobertura_roubo: 'Cob. Roubo', cobertura_terceiros: 'Cob. Terceiros', 
+                carro_reserva: 'Carro Reserva', km_guincho: 'Guincho (KM)',
+                capital_vida: 'Capital Vida', motivo_vida: 'Motivo', preferencia_rede: 'Rede Preferida',
+                plano_saude: 'Plano Saúde', status: 'Status Atual', criadoEm: 'Data Criação'
+            };
+
+            // Itera sobre todas as chaves do objeto Lead
+            for (const [key, value] of Object.entries(lead)) {
+                if (!value || value === '') continue; // Pula vazios
+
+                const labelAmigavel = labels[key] || key;
+                let valorFormatado = value;
+                
+                // Formata datas
+                if (key === 'criadoEm') valorFormatado = new Date(value).toLocaleString();
+
+                const linha = `
+                    <div class="modal-details-row">
+                        <span class="modal-details-label">${labelAmigavel}</span>
+                        <span class="modal-details-value">${valorFormatado}</span>
+                    </div>
+                `;
+                container.innerHTML += linha;
+            }
+
+            modalDetalhes.show();
+        }
+
+        // 7. SALVAR NOVO STATUS PELO MODAL
+        async function salvarStatusModal() {
+            const novoStatus = document.getElementById('modal-select-status').value;
+            const btn = document.querySelector('#modalDetalhes button.btn-primary');
+            
+            btn.innerText = 'Salvando...';
+            btn.disabled = true;
+
+            try {
+                await fetch(`${API_URL}/${leadSelecionadoId}`, {
+                    method: 'PATCH',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ status: novoStatus })
+                });
+                
+                // Atualiza localmente e recarrega telas
+                const leadIndex = todosLeads.findIndex(l => l.id === leadSelecionadoId);
+                if (leadIndex > -1) todosLeads[leadIndex].status = novoStatus;
+                
+                atualizarDashboard();
+                renderizarTabela();
+                renderizarKanban();
+                
+                modalDetalhes.hide();
+                alert('Status atualizado!');
+            } catch (error) {
+                alert('Erro ao atualizar status.');
+            } finally {
+                btn.innerText = 'Salvar Status';
+                btn.disabled = false;
             }
         }
 
-        function renderizarGrafico() {
-            const ctx = document.getElementById('graficoLeads').getContext('2d');
-            
-            // Contagem para o gráfico
-            const auto = allLeads.filter(l => (l.tipo_seguro||'').includes('Auto')).length;
-            const vida = allLeads.filter(l => (l.tipo_seguro||'').includes('Vida')).length;
-            const saude = allLeads.filter(l => (l.tipo_seguro||'').includes('Saude')).length;
-            const outros = allLeads.length - (auto + vida + saude);
+        // AUXILIARES
+        function getStatusBadge(status) {
+            const cores = { 'NOVO': 'bg-info', 'NEGOCIACAO': 'bg-warning text-dark', 'FECHADO': 'bg-success', 'PERDIDO': 'bg-danger' };
+            const labels = { 'NOVO': 'Novo', 'NEGOCIACAO': 'Negociação', 'FECHADO': 'Vendido', 'PERDIDO': 'Perdido' };
+            const cor = cores[status] || 'bg-secondary';
+            const label = labels[status] || status || 'Novo';
+            return `<span class="badge ${cor}">${label}</span>`;
+        }
 
-            if(chartInstance) chartInstance.destroy(); // Limpa anterior
-
-            chartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Auto', 'Vida', 'Saúde', 'Outros'],
-                    datasets: [{
-                        data: [auto, vida, saude, outros],
-                        backgroundColor: ['#36a2eb', '#ff6384', '#4bc0c0', '#ffcd56']
-                    }]
-                }
+        function filtrarLeads() {
+            const termo = document.getElementById('filtro-tabela').value.toLowerCase();
+            const linhas = document.querySelectorAll('#tabela-corpo tr');
+            linhas.forEach(linha => {
+                const texto = linha.innerText.toLowerCase();
+                linha.style.display = texto.includes(termo) ? '' : 'none';
             });
         }
-
-        function verDetalhes(nome, obs, veiculo) {
-            alert(`Detalhes de ${nome}:\nVeículo: ${veiculo}\nObs: ${obs}`);
-        }
-
-        function filtrarTabela() {
-            const termo = document.getElementById('busca').value.toLowerCase();
-            const filtrados = allLeads.filter(l => l.nome.toLowerCase().includes(termo));
-            renderizarTabela(filtrados);
-        }
-
-        // Iniciar
-        carregarLeads();
     </script>
 </body>
 </html>

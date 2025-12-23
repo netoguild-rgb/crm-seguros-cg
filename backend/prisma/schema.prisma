@@ -1,4 +1,4 @@
-// ARQUIVO: backend/prisma/schema.prisma
+// ARQUIVO: prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
@@ -10,33 +10,23 @@ datasource db {
 }
 
 model Lead {
-  id                  Int      @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
+  criadoEm  DateTime @default(now())
+  
+  // Campos Principais (Mapeados)
   nome                String
   whatsapp            String
-  profissao           String?
-  idade_condutor      String?
-  tipo_seguro         String?
-  obs_final           String?
-  
-  // Dados Auto
-  renavan             String?
-  placa               String?
-  ano_veiculo         String?
-  modelo_veiculo      String?
-  uso_veiculo         String?
-  condutor_principal  String?
-  cobertura_roubo     String?
-  cobertura_terceiros String?
-  carro_reserva       String?
-  km_guincho          String?
-
-  // Dados Vida/Saúde
-  capital_vida        String?
-  motivo_vida         String?
-  preferencia_rede    String?
-  plano_saude         String?
-
-  // Gestão
+  email               String?
+  cpf                 String?
   status              String   @default("NOVO")
-  criadoEm            DateTime @default(now())
+  
+  // Seguros / Veículo
+  tipo_seguro         String?
+  placa               String?
+  modelo_veiculo      String?
+  ano_veiculo         String?
+  uso_veiculo         String?
+  
+  // O SEGREDO: Esse campo salva TUDO o que vier do Typebot
+  dados_extras        Json?    
 }
