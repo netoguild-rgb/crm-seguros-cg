@@ -3,58 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CG Seguros - Raio-X</title>
+    <title>CG Seguros - Sistema de Gestão</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     
     <style>
         :root { --sidebar-width: 260px; --primary-color: #0d6efd; --bg-light: #f4f6f9; }
         body { background-color: var(--bg-light); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
-        .sidebar { height: 100vh; width: var(--sidebar-width); position: fixed; top: 0; left: 0; background: #212529; color: white; z-index: 1000; transition: transform 0.3s ease; }
+        
+        /* SIDEBAR */
+        .sidebar { 
+            height: 100vh; width: var(--sidebar-width); position: fixed; top: 0; left: 0; 
+            background: linear-gradient(180deg, #212529 0%, #343a40 100%); color: white; z-index: 1000;
+            transition: transform 0.3s ease;
+        }
         .sidebar-header { padding: 25px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .nav-link { padding: 15px 25px; color: #ced4da; cursor: pointer; border-left: 4px solid transparent; }
+        .nav-link { 
+            padding: 15px 25px; color: #ced4da; font-size: 0.95rem; cursor: pointer; 
+            border-left: 4px solid transparent; transition: all 0.2s;
+        }
         .nav-link:hover, .nav-link.active { color: white; background: rgba(255,255,255,0.08); border-left-color: var(--primary-color); }
-        .main-content { margin-left: var(--sidebar-width); padding: 30px; }
+        .nav-link i { width: 25px; text-align: center; margin-right: 10px; }
+
+        /* CONTEÚDO */
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; transition: margin 0.3s; }
+        
+        /* CARDS */
         .card-panel { background: white; border-radius: 12px; border: none; box-shadow: 0 5px 20px rgba(0,0,0,0.05); margin-bottom: 20px; padding: 25px; }
         .stat-icon { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-        
+
         /* KANBAN */
         .kanban-board { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; min-height: 70vh; }
-        .kanban-column { flex: 1; min-width: 280px; background: #e9ecef; border-radius: 12px; padding: 15px; }
-        .kanban-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid #ccc; cursor: grab; }
+        .kanban-column { flex: 1; min-width: 280px; background: #e9ecef; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; }
+        .kanban-header { font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; color: #495057; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; }
+        
+        .kanban-list { min-height: 100px; flex-grow: 1; } 
+
+        .kanban-card { 
+            background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid #ccc; cursor: grab; 
+            transition: transform 0.2s, box-shadow 0.2s; position: relative;
+        }
+        .kanban-card:active { cursor: grabbing; }
+        .kanban-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        
+        /* Bordas de Status */
         .border-NOVO { border-left-color: #0dcaf0 !important; }
         .border-NEGOCIACAO { border-left-color: #ffc107 !important; }
         .border-FECHADO { border-left-color: #198754 !important; }
         .border-PERDIDO { border-left-color: #dc3545 !important; }
 
         /* MODAL */
-        .modal-details-row { border-bottom: 1px solid #f0f0f0; padding: 8px 0; display: flex; justify-content: space-between; }
-        .modal-details-label { font-weight: bold; color: #555; font-size: 0.85rem; }
-        .modal-details-value { font-weight: normal; color: #000; text-align: right; word-break: break-word; max-width: 60%; font-size: 0.9rem; }
-        
-        /* Loading */
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 2000; display: flex; justify-content: center; align-items: center; }
+        .modal-details-row { border-bottom: 1px solid #f0f0f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-details-row:last-child { border-bottom: none; }
+        .modal-details-label { font-weight: 600; color: #6c757d; font-size: 0.9rem; }
+        .modal-details-value { font-weight: 500; color: #212529; text-align: right; word-break: break-word; max-width: 60%; }
 
-        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); width: 100%; } .sidebar.show { transform: translateX(0); } .main-content { margin-left: 0; padding: 15px; } .mobile-toggle { display: block !important; } }
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8);
+            z-index: 2000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px);
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 100%; }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 15px; }
+            .mobile-toggle { display: block !important; }
+        }
         .mobile-toggle { display: none; font-size: 1.5rem; cursor: pointer; margin-bottom: 20px; color: #333; }
-        .view-section { display: none; } .view-section.active { display: block; }
+        .view-section { display: none; animation: fadeIn 0.3s; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div id="loading-overlay"><div class="spinner-border text-primary"></div></div>
+    <div id="loading-overlay">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+    </div>
 
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-header"><h4 class="m-0 text-white">CG CRM</h4></div>
+        <div class="sidebar-header d-flex justify-content-between align-items-center">
+            <h4 class="m-0 text-white fw-bold"><i class="fas fa-shield-alt text-primary me-2"></i>CG CRM</h4>
+            <button class="btn btn-sm btn-outline-light d-md-none" onclick="toggleSidebar()">✕</button>
+        </div>
         <nav class="mt-4">
-            <a class="nav-link active" onclick="switchView('dashboard', this)"><i class="fas fa-chart-pie me-2"></i> Dashboard</a>
-            <a class="nav-link" onclick="switchView('leads', this)"><i class="fas fa-list me-2"></i> Leads</a>
-            <a class="nav-link" onclick="switchView('campanhas', this)"><i class="fas fa-tasks me-2"></i> Kanban</a>
-            <hr class="mx-3 text-secondary">
-            <a class="nav-link" onclick="carregarDados()"><i class="fas fa-sync me-2"></i> Atualizar</a>
+            <a class="nav-link active" onclick="switchView('dashboard', this)"><i class="fas fa-chart-pie"></i> Dashboard</a>
+            <a class="nav-link" onclick="switchView('leads', this)"><i class="fas fa-list"></i> Todos os Leads</a>
+            <a class="nav-link" onclick="switchView('campanhas', this)"><i class="fas fa-tasks"></i> Funil (Kanban)</a>
+            <hr class="border-secondary mx-3">
+            <a class="nav-link" onclick="carregarDados()"><i class="fas fa-sync-alt"></i> Atualizar Dados</a>
         </nav>
     </div>
 
@@ -62,206 +106,461 @@
         <i class="fas fa-bars mobile-toggle" onclick="toggleSidebar()"></i>
 
         <div id="view-dashboard" class="view-section active">
-            <h3 class="fw-bold mb-4">Visão Geral</h3>
-            <div class="row">
-                <div class="col-md-3"><div class="card-panel stat-card"><div><h6 class="text-muted small">TOTAL LEADS</h6><h2 id="dash-total">0</h2></div><div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-users"></i></div></div></div>
-                <div class="col-md-3"><div class="card-panel stat-card"><div><h6 class="text-muted small">VENDAS</h6><h2 id="dash-fechados" class="text-success">0</h2></div><div class="stat-icon bg-success bg-opacity-10 text-success"><i class="fas fa-check"></i></div></div></div>
+            <h3 class="mb-4 text-dark fw-bold">Visão Geral</h3>
+            
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card-panel stat-card d-flex justify-content-between align-items-center">
+                        <div><h6 class="text-muted text-uppercase small fw-bold">Total Leads</h6><h2 class="mb-0 fw-bold" id="dash-total">0</h2></div>
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-users"></i></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card-panel stat-card d-flex justify-content-between align-items-center">
+                        <div><h6 class="text-muted text-uppercase small fw-bold">Auto / Veículo</h6><h2 class="mb-0 fw-bold" id="dash-auto">0</h2></div>
+                        <div class="stat-icon bg-info bg-opacity-10 text-info"><i class="fas fa-car"></i></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card-panel stat-card d-flex justify-content-between align-items-center">
+                        <div><h6 class="text-muted text-uppercase small fw-bold">Vida e Saúde</h6><h2 class="mb-0 fw-bold" id="dash-vida">0</h2></div>
+                        <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="fas fa-heartbeat"></i></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card-panel stat-card d-flex justify-content-between align-items-center">
+                        <div><h6 class="text-muted text-uppercase small fw-bold">Vendas</h6><h2 class="mb-0 fw-bold text-success" id="dash-fechados">0</h2></div>
+                        <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="fas fa-check-circle"></i></div>
+                    </div>
+                </div>
             </div>
-            <div class="card-panel"><canvas id="graficoDashboard" style="max-height: 300px;"></canvas></div>
+
+            <div class="row">
+                <div class="col-md-7">
+                    <div class="card-panel">
+                        <h5 class="mb-3 fw-bold">Desempenho por Produto</h5>
+                        <canvas id="graficoDashboard" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="card-panel h-100 d-flex flex-column justify-content-center text-center bg-light">
+                        <i class="fas fa-hand-holding-usd text-warning mb-3" style="font-size: 3rem;"></i>
+                        <h4 class="fw-bold">Foque nas Negociações</h4>
+                        <p class="text-muted">Use o Kanban para mover cards e organizar suas prioridades de hoje.</p>
+                        <button class="btn btn-primary w-100" onclick="switchView('campanhas', document.querySelectorAll('.nav-link')[2])">Ir para o Funil</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="view-leads" class="view-section">
-            <h3 class="fw-bold mb-4">Todos os Leads</h3>
-            <input type="text" id="filtro-tabela" class="form-control mb-3 w-50" placeholder="Buscar..." onkeyup="filtrarLeads()">
-            <div class="card-panel p-0"><div class="table-responsive"><table class="table table-hover mb-0"><thead class="bg-light"><tr><th class="ps-4">Nome</th><th>Interesse</th><th>Status</th><th>Ação</th></tr></thead><tbody id="tabela-corpo"></tbody></table></div></div>
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <h3 class="fw-bold m-0">Meus Leads</h3>
+                <input type="text" id="filtro-tabela" class="form-control" style="max-width: 300px;" placeholder="🔍 Buscar nome, placa, telefone..." onkeyup="filtrarLeads()">
+            </div>
+
+            <div class="card-panel p-0 overflow-hidden shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4 py-3">Cliente / Data</th>
+                                <th>Interesse</th>
+                                <th>Status</th>
+                                <th>WhatsApp</th>
+                                <th class="text-end pe-4">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-corpo">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <div id="view-campanhas" class="view-section">
-            <h3 class="fw-bold mb-4">Funil de Vendas</h3>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold">Funil de Vendas</h3>
+                <span class="badge bg-primary fs-6">Arraste os cards para mudar o status!</span>
+            </div>
+
             <div class="kanban-board">
-                <div class="kanban-column"><div class="text-info fw-bold mb-3">NOVOS <span id="count-novo" class="badge bg-white text-dark ms-1">0</span></div><div id="coluna-NOVO" class="kanban-list" data-status="NOVO"></div></div>
-                <div class="kanban-column"><div class="text-warning fw-bold mb-3">NEGOCIAÇÃO <span id="count-negociacao" class="badge bg-white text-dark ms-1">0</span></div><div id="coluna-NEGOCIACAO" class="kanban-list" data-status="NEGOCIACAO"></div></div>
-                <div class="kanban-column"><div class="text-success fw-bold mb-3">VENDIDO <span id="count-fechado" class="badge bg-white text-dark ms-1">0</span></div><div id="coluna-FECHADO" class="kanban-list" data-status="FECHADO"></div></div>
-                <div class="kanban-column"><div class="text-danger fw-bold mb-3">PERDIDO <span id="count-perdido" class="badge bg-white text-dark ms-1">0</span></div><div id="coluna-PERDIDO" class="kanban-list" data-status="PERDIDO"></div></div>
+                <div class="kanban-column">
+                    <div class="kanban-header text-info">
+                        <span><i class="fas fa-star me-1"></i> Novos</span>
+                        <span class="badge bg-white text-dark ms-2 shadow-sm" id="count-novo">0</span>
+                    </div>
+                    <div id="coluna-NOVO" class="kanban-list" data-status="NOVO"></div>
+                </div>
+
+                <div class="kanban-column">
+                    <div class="kanban-header text-warning">
+                        <span><i class="fas fa-comments me-1"></i> Negociação</span>
+                        <span class="badge bg-white text-dark ms-2 shadow-sm" id="count-negociacao">0</span>
+                    </div>
+                    <div id="coluna-NEGOCIACAO" class="kanban-list" data-status="NEGOCIACAO"></div>
+                </div>
+
+                <div class="kanban-column">
+                    <div class="kanban-header text-success">
+                        <span><i class="fas fa-check me-1"></i> Vendido</span>
+                        <span class="badge bg-white text-dark ms-2 shadow-sm" id="count-fechado">0</span>
+                    </div>
+                    <div id="coluna-FECHADO" class="kanban-list" data-status="FECHADO"></div>
+                </div>
+
+                <div class="kanban-column">
+                    <div class="kanban-header text-danger">
+                        <span><i class="fas fa-times me-1"></i> Perdido</span>
+                        <span class="badge bg-white text-dark ms-2 shadow-sm" id="count-perdido">0</span>
+                    </div>
+                    <div id="coluna-PERDIDO" class="kanban-list" data-status="PERDIDO"></div>
+                </div>
             </div>
         </div>
+
     </div>
 
     <div class="modal fade" id="modalDetalhes" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold" id="modal-nome">Lead</h5>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0">
+                <div class="modal-header bg-light border-bottom-0">
+                    <h5 class="modal-title fw-bold">Detalhes do Lead</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="text-center mb-3">
-                        <span id="modal-tipo" class="badge bg-secondary mb-2">Tipo</span>
-                        <br>
-                        <a id="btn-whats-modal" href="#" target="_blank" class="btn btn-success btn-sm mt-2"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                    </div>
-                    
-                    <div class="p-2 bg-light rounded mb-3">
-                        <label class="small fw-bold">Status:</label>
-                        <select id="modal-select-status" class="form-select form-select-sm" onchange="salvarStatusModal()">
-                            <option value="NOVO">Novo</option>
-                            <option value="NEGOCIACAO">Em Negociação</option>
-                            <option value="FECHADO">Venda Fechada</option>
-                            <option value="PERDIDO">Perdido</option>
-                        </select>
-                    </div>
+                <div class="modal-body p-4">
+                    <div class="row">
+                        <div class="col-md-4 text-center border-end">
+                            <div class="bg-primary bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 shadow" style="width: 90px; height: 90px; font-size: 2.5rem;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <h5 id="modal-nome" class="fw-bold mb-1">Nome Cliente</h5>
+                            <p id="modal-tipo" class="text-muted mb-3">Tipo</p>
+                            
+                            <div class="d-grid gap-2 mb-4">
+                                <a id="btn-whats-modal" href="#" target="_blank" class="btn btn-success fw-bold shadow-sm">
+                                    <i class="fab fa-whatsapp me-2"></i> WhatsApp
+                                </a>
+                            </div>
 
-                    <h6 class="fw-bold border-bottom pb-2">📋 Todos os Dados (Raio-X)</h6>
-                    <div id="modal-lista-dados" style="max-height: 400px; overflow-y: auto;"></div>
+                            <div class="text-start bg-light p-3 rounded">
+                                <label class="small text-muted fw-bold mb-1">Alterar Status:</label>
+                                <select id="modal-select-status" class="form-select form-select-sm mb-2">
+                                    <option value="NOVO">Novo</option>
+                                    <option value="NEGOCIACAO">Em Negociação</option>
+                                    <option value="FECHADO">Venda Fechada</option>
+                                    <option value="PERDIDO">Perdido</option>
+                                </select>
+                                <button class="btn btn-outline-primary btn-sm w-100" onclick="salvarStatusModal()">Atualizar</button>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-8 ps-md-4">
+                            <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">
+                                <i class="fas fa-clipboard-list me-1"></i> Dados Coletados
+                            </h6>
+                            <div id="modal-lista-dados" class="pe-2" style="max-height: 450px; overflow-y: auto;">
+                                </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        const API_URL = 'https://crm-seguros.onrender.com/leads';
+        // --- CONFIGURAÇÃO ---
+        const API_URL = 'https://crm-seguros.onrender.com/leads'; // URL do Backend
         let todosLeads = [];
         let leadSelecionadoId = null;
         let chartInstance = null;
         const modalDetalhes = new bootstrap.Modal(document.getElementById('modalDetalhes'));
         const loader = document.getElementById('loading-overlay');
 
-        document.addEventListener('DOMContentLoaded', () => { carregarDados(); configurarDragAndDrop(); });
-        function toggleLoader(show) { loader.style.display = show ? 'flex' : 'none'; }
+        // --- INICIALIZAÇÃO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarDados();
+            configurarDragAndDrop();
+        });
 
+        function toggleLoader(show) {
+            loader.style.display = show ? 'flex' : 'none';
+        }
+
+        // --- 1. CARREGAR DADOS ---
         async function carregarDados() {
             toggleLoader(true);
             try {
                 const res = await fetch(API_URL);
                 todosLeads = await res.json();
+                
+                // Ordena por data (mais recente primeiro)
                 todosLeads.sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm));
-                atualizarTelas();
-            } catch (e) { console.error(e); alert("Erro de conexão"); } 
-            finally { toggleLoader(false); }
+
+                atualizarDashboard();
+                renderizarTabela();
+                renderizarKanban();
+            } catch (error) {
+                console.error("Erro:", error);
+                alert("Erro ao conectar com o servidor. Verifique se o Render está ativo.");
+            } finally {
+                toggleLoader(false);
+            }
         }
 
-        function atualizarTelas() {
-            renderizarTabela();
-            renderizarKanban();
-            atualizarDashboard();
-        }
-
+        // --- 2. RENDERIZAR TABELA ---
         function renderizarTabela() {
             const tbody = document.getElementById('tabela-corpo');
             tbody.innerHTML = '';
+
             todosLeads.forEach(lead => {
-                let tipo = lead.tipo_seguro || (lead.dados_extras?.tipo_seguro) || '-';
+                const dataFormatada = new Date(lead.criadoEm).toLocaleDateString('pt-BR', {day:'2-digit', month:'short'});
+                let tipo = lead.tipo_seguro || (lead.dados_extras && lead.dados_extras.tipo_seguro) || 'Geral';
+                
+                let detalheVeiculo = lead.placa || (lead.dados_extras ? lead.dados_extras.placa : '') || '';
+
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td class="ps-4 fw-bold">${lead.nome || 'Sem Nome'}</td><td>${tipo}</td><td>${getStatusBadge(lead.status)}</td><td><button class="btn btn-sm btn-outline-primary" onclick="abrirModal(${lead.id})">Abrir</button></td>`;
+                tr.innerHTML = `
+                    <td class="ps-4">
+                        <div class="fw-bold text-dark">${lead.nome || 'Sem Nome'}</div>
+                        <small class="text-muted" style="font-size: 0.75rem">${dataFormatada}</small>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-secondary" style="font-size: 0.9rem">${tipo}</div>
+                        ${detalheVeiculo ? `<small class="badge bg-light text-dark border">${detalheVeiculo}</small>` : ''}
+                    </td>
+                    <td>${getStatusBadge(lead.status)}</td>
+                    <td>
+                        <a href="https://wa.me/55${limparWhats(lead.whatsapp)}" target="_blank" class="text-decoration-none text-success fw-bold">
+                            <i class="fab fa-whatsapp"></i> ${lead.whatsapp || '-'}
+                        </a>
+                    </td>
+                    <td class="text-end pe-4">
+                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="abrirModal(${lead.id})">
+                            Detalhes
+                        </button>
+                    </td>
+                `;
                 tbody.appendChild(tr);
             });
         }
 
+        // --- 3. KANBAN COM DRAG & DROP ---
         function renderizarKanban() {
-            ['NOVO', 'NEGOCIACAO', 'FECHADO', 'PERDIDO'].forEach(s => {
-                document.getElementById(`coluna-${s}`).innerHTML = '';
-                document.getElementById(`count-${s.toLowerCase()}`).innerText = todosLeads.filter(l => (l.status||'NOVO')===s).length;
+            ['NOVO', 'NEGOCIACAO', 'FECHADO', 'PERDIDO'].forEach(status => {
+                document.getElementById(`coluna-${status}`).innerHTML = '';
+                const count = todosLeads.filter(l => (l.status || 'NOVO') === status).length;
+                document.getElementById(`count-${status.toLowerCase()}`).innerText = count;
             });
+
             todosLeads.forEach(lead => {
-                const s = lead.status || 'NOVO';
-                const col = document.getElementById(`coluna-${s}`);
-                if(col) {
-                    const card = document.createElement('div');
-                    card.className = `kanban-card border-${s}`;
-                    card.setAttribute('data-id', lead.id);
-                    card.onclick = () => abrirModal(lead.id);
-                    card.innerHTML = `<div class="fw-bold">${lead.nome}</div><small class="text-muted">${lead.tipo_seguro || 'Geral'}</small>`;
-                    col.appendChild(card);
-                }
+                const status = lead.status || 'NOVO';
+                const col = document.getElementById(`coluna-${status}`);
+                if (!col) return;
+
+                const tipo = lead.tipo_seguro || (lead.dados_extras && lead.dados_extras.tipo_seguro) || 'Geral';
+                
+                const card = document.createElement('div');
+                card.className = `kanban-card border-${status}`;
+                card.setAttribute('data-id', lead.id);
+                
+                card.innerHTML = `
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="badge bg-light text-secondary border">${tipo}</span>
+                        <small class="text-muted" style="font-size:0.7rem">${new Date(lead.criadoEm).toLocaleDateString('pt-BR')}</small>
+                    </div>
+                    <div class="fw-bold mb-2 text-dark">${lead.nome || 'Sem Nome'}</div>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <button class="btn btn-xs btn-light text-primary py-0" style="font-size:0.8rem" onclick="abrirModal(${lead.id})">Ver</button>
+                        <i class="fab fa-whatsapp text-success"></i>
+                    </div>
+                `;
+                col.appendChild(card);
             });
         }
 
-        // --- MODO RAIO-X ATIVADO ---
+        function configurarDragAndDrop() {
+            const colunas = document.querySelectorAll('.kanban-list');
+            colunas.forEach(coluna => {
+                new Sortable(coluna, {
+                    group: 'kanban',
+                    animation: 150,
+                    ghostClass: 'bg-light',
+                    onEnd: function (evt) {
+                        const itemEl = evt.item;
+                        const novoStatus = evt.to.getAttribute('data-status');
+                        const leadId = itemEl.getAttribute('data-id');
+                        
+                        itemEl.className = itemEl.className.replace(/border-\w+/, `border-${novoStatus}`);
+                        atualizarStatusNoBanco(leadId, novoStatus);
+                    }
+                });
+            });
+        }
+
+        async function atualizarStatusNoBanco(id, novoStatus) {
+            try {
+                await fetch(`${API_URL}/${id}`, {
+                    method: 'PATCH',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ status: novoStatus })
+                });
+                const lead = todosLeads.find(l => l.id == id);
+                if(lead) lead.status = novoStatus;
+                atualizarDashboard();
+            } catch (e) {
+                console.error("Erro ao salvar arraste", e);
+                alert("Erro ao salvar mudança de status.");
+            }
+        }
+
+        // --- 4. MODAL INTELIGENTE (Visual Bonito + Dados Extras) ---
         function abrirModal(id) {
             const lead = todosLeads.find(l => l.id === id);
             if (!lead) return;
             leadSelecionadoId = id;
 
+            // Debug no Console (só para garantir)
+            console.log("DADOS DO LEAD:", lead);
+
+            // Cabeçalho do Modal
             document.getElementById('modal-nome').innerText = lead.nome || 'Sem Nome';
+            
             let tipo = lead.tipo_seguro || (lead.dados_extras && lead.dados_extras.tipo_seguro) || 'Geral';
             document.getElementById('modal-tipo').innerText = tipo;
+            
             document.getElementById('modal-select-status').value = lead.status || 'NOVO';
-            document.getElementById('btn-whats-modal').href = `https://wa.me/55${(lead.whatsapp||'').replace(/\D/g,'')}`;
+            document.getElementById('btn-whats-modal').href = `https://wa.me/55${limparWhats(lead.whatsapp)}`;
 
+            // LISTA DE DADOS
             const container = document.getElementById('modal-lista-dados');
             container.innerHTML = '';
 
-            // 1. Mistura tudo que existe
-            let tudoJunto = { ...lead };
-            if (lead.dados_extras && typeof lead.dados_extras === 'object') {
-                tudoJunto = { ...tudoJunto, ...lead.dados_extras };
+            // --- AQUI ESTÁ A CORREÇÃO MÁGICA ---
+            // 1. Pegamos os dados principais
+            let dadosMisturados = { ...lead };
+
+            // 2. Se houver dados extras, adicionamos eles à mistura
+            if (lead.dados_extras) {
+                let extras = lead.dados_extras;
+                // Se vier como texto, transforma em objeto
+                if (typeof extras === 'string') {
+                    try { extras = JSON.parse(extras); } catch (e) { console.warn("Erro parsing JSON"); }
+                }
+                // Junta tudo. O que estiver nos extras sobrescreve ou adiciona ao principal.
+                dadosMisturados = { ...dadosMisturados, ...extras };
             }
 
-            // 2. Chaves que vamos ignorar APENAS se forem técnicas
-            const ignorarTecnicos = ['id', 'dados_extras', 'updatedAt', 'criadoEm'];
+            // O que NÃO deve aparecer na lista (chaves técnicas)
+            const ignorar = ['id', 'dados_extras', 'updatedAt', 'criadoEm', 'status', 'nome', 'whatsapp', 'email', 'cpf'];
 
-            // 3. Loop Poderoso (Mostra tudo, mesmo se for vazio)
-            for (const [key, value] of Object.entries(tudoJunto)) {
-                if (ignorarTecnicos.includes(key)) continue;
+            // Nomes Bonitos para os Campos
+            const nomesAmigaveis = {
+                placa: 'Placa do Veículo',
+                renavan: 'Renavam',
+                modelo_veiculo: 'Modelo',
+                ano_veiculo: 'Ano',
+                profissao: 'Profissão',
+                idade_condutor: 'Idade',
+                obs_final: 'Observações',
+                tipo_seguro: 'Interesse',
+                fipe: 'Tabela FIPE',
+                cep_pernoite: 'CEP',
+                condutor_principal: 'É Condutor Principal?',
+                uso_veiculo: 'Uso do Veículo'
+            };
 
-                // Tenta deixar o nome da chave mais bonito (tirar underline)
-                let label = key.replace(/_/g, ' ').toUpperCase();
+            // Gera a lista bonita na tela
+            for (const [key, value] of Object.entries(dadosMisturados)) {
+                // Filtro visual: Se estiver vazio, não mostra (para manter bonito).
+                // Mas como estamos lendo de dadosMisturados, agora vai achar o que estava escondido!
+                if (!value || value === '' || ignorar.includes(key)) continue;
+
+                const label = nomesAmigaveis[key] || key.replace(/_/g, ' ').toUpperCase();
                 
-                // Se o valor for vazio ou null, mostra um aviso visual
-                let valorVisual = value;
-                if (value === null || value === undefined || value === '') {
-                    valorVisual = '<span class="text-muted fst-italic">(Vazio)</span>';
-                }
-
                 const div = document.createElement('div');
                 div.className = 'modal-details-row';
-                div.innerHTML = `<span class="modal-details-label">${label}</span><span class="modal-details-value">${valorVisual}</span>`;
+                div.innerHTML = `
+                    <span class="modal-details-label">${label}</span>
+                    <span class="modal-details-value text-dark">${value}</span>
+                `;
                 container.appendChild(div);
             }
-            
+
             modalDetalhes.show();
         }
 
         async function salvarStatusModal() {
-            const novo = document.getElementById('modal-select-status').value;
-            await fetch(`${API_URL}/${leadSelecionadoId}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({status: novo}) });
-            const idx = todosLeads.findIndex(l => l.id === leadSelecionadoId);
-            if(idx > -1) todosLeads[idx].status = novo;
-            atualizarTelas();
-            alert("Status salvo!");
+            const novoStatus = document.getElementById('modal-select-status').value;
+            toggleLoader(true);
+            await atualizarStatusNoBanco(leadSelecionadoId, novoStatus);
+            toggleLoader(false);
+            modalDetalhes.hide();
+            renderizarKanban();
+            renderizarTabela();
         }
 
-        // Helpers e Configs
-        function configurarDragAndDrop() {
-            document.querySelectorAll('.kanban-list').forEach(c => {
-                new Sortable(c, { group: 'kanban', animation: 150, onEnd: async (evt) => {
-                    const id = evt.item.getAttribute('data-id');
-                    const status = evt.to.getAttribute('data-status');
-                    evt.item.className = evt.item.className.replace(/border-\w+/, `border-${status}`);
-                    await fetch(`${API_URL}/${id}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({status}) });
-                    todosLeads.find(l => l.id == id).status = status;
-                    renderizarKanban(); atualizarDashboard();
-                }});
-            });
-        }
-        function switchView(v, el) { 
-            document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
-            document.getElementById('view-'+v).classList.add('active');
-            if(el) { document.querySelectorAll('.nav-link').forEach(e => e.classList.remove('active')); el.classList.add('active'); }
-            if(window.innerWidth < 768) toggleSidebar();
-        }
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('show'); }
-        function getStatusBadge(s) { const c={'NOVO':'bg-info','NEGOCIACAO':'bg-warning','FECHADO':'bg-success','PERDIDO':'bg-danger'}; return `<span class="badge ${c[s]||'bg-secondary'}">${s}</span>`; }
+        // --- EXTRAS ---
         function atualizarDashboard() {
             document.getElementById('dash-total').innerText = todosLeads.length;
-            document.getElementById('dash-fechados').innerText = todosLeads.filter(l=>l.status==='FECHADO').length;
-            if(chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(document.getElementById('graficoDashboard'), {type:'bar',data:{labels:['Total','Vendas'],datasets:[{label:'Leads',data:[todosLeads.length,todosLeads.filter(l=>l.status==='FECHADO').length],backgroundColor:['#0d6efd','#198754']}]}});
+            document.getElementById('dash-fechados').innerText = todosLeads.filter(l => l.status === 'FECHADO').length;
+            
+            const auto = todosLeads.filter(l => {
+                const tipo = (l.tipo_seguro || (l.dados_extras?.tipo_seguro) || '').toLowerCase();
+                return tipo.includes('auto') || tipo.includes('carro') || tipo.includes('moto') || l.placa || (l.dados_extras?.placa);
+            }).length;
+            
+            const vida = todosLeads.filter(l => {
+                 const tipo = (l.tipo_seguro || (l.dados_extras?.tipo_seguro) || '').toLowerCase();
+                 return tipo.includes('vida') || tipo.includes('saude') || tipo.includes('odont');
+            }).length;
+
+            document.getElementById('dash-auto').innerText = auto;
+            document.getElementById('dash-vida').innerText = vida;
+
+            const ctx = document.getElementById('graficoDashboard').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Auto', 'Vida/Saúde', 'Outros'],
+                    datasets: [{
+                        label: 'Leads',
+                        data: [auto, vida, todosLeads.length - (auto + vida)],
+                        backgroundColor: ['#0dcaf0', '#dc3545', '#adb5bd'],
+                        borderRadius: 6
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function switchView(viewName, element) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + viewName).classList.add('active');
+            
+            if (element) {
+                document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+                element.classList.add('active');
+            }
+            if(window.innerWidth < 768) toggleSidebar();
+        }
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('show'); }
+        function limparWhats(num) { return num ? num.toString().replace(/\D/g, '') : ''; }
+        function getStatusBadge(s) {
+            const map = { 'NOVO': 'info', 'NEGOCIACAO': 'warning', 'FECHADO': 'success', 'PERDIDO': 'danger' };
+            const label = { 'NOVO': 'Novo', 'NEGOCIACAO': 'Negociação', 'FECHADO': 'Vendido', 'PERDIDO': 'Perdido' };
+            return `<span class="badge bg-${map[s] || 'secondary'}">${label[s] || s}</span>`;
         }
         function filtrarLeads() {
-            const t = document.getElementById('filtro-tabela').value.toLowerCase();
-            document.querySelectorAll('#tabela-corpo tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(t) ? '' : 'none');
+            const termo = document.getElementById('filtro-tabela').value.toLowerCase();
+            const linhas = document.querySelectorAll('#tabela-corpo tr');
+            linhas.forEach(linha => {
+                linha.style.display = linha.innerText.toLowerCase().includes(termo) ? '' : 'none';
+            });
         }
     </script>
 </body>
