@@ -1,17 +1,20 @@
 import React from 'react';
-// Importa a imagem da logo da pasta assets (caminho relativo ../assets/logo.png)
+// Importa a imagem da pasta assets
 import logoCrm from '../assets/logo.png';
 
 const Logo = ({ collapsed }) => {
   return (
-    <div className="flex items-center justify-center py-4 overflow-hidden w-full">
+    // Container flex para centralizar a imagem
+    <div className="flex items-center justify-center py-4 w-full overflow-hidden">
       <img 
         src={logoCrm} 
         alt="CRM Seguros" 
-        // Ajusta o tamanho da logo dependendo do estado da sidebar (collapsed)
-        // 'object-contain' garante que a imagem não fique distorcida
+        // Lógica de tamanho:
+        // Se collapsed (fechado): w-10 (aprox 40px)
+        // Se aberto: w-40 (aprox 160px)
+        // object-contain garante que a proporção da imagem seja mantida sem cortes
         className={`transition-all duration-300 object-contain ${
-          collapsed ? 'w-10 h-auto' : 'w-40 h-auto'
+          collapsed ? 'w-10' : 'w-40'
         }`} 
       />
     </div>
