@@ -2,23 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown } from 'lucide-react';
 import { getLeads, updateLeadStatus, deleteLead, getConfig } from './services/api';
 
-// --- IMPORTS DE COMPONENTES ---
+// --- COMPONENTES ---
 import KanbanBoard from './components/KanbanBoard';
 import LeadModal from './components/LeadModal';
 import NewLeadModal from './components/NewLeadModal';
 import WhatsAppModal from './components/WhatsAppModal';
 import Dashboard from './components/Dashboard';
 import ConfigPage from './components/ConfigPage';
-// 1. IMPORT DO COMPONENTE LOGO DO CRM
+// IMPORT DO LOGO DO SISTEMA (TOPO)
 import Logo from './components/Logo'; 
 
-// --- LIBs EXTRAS ---
+// --- UTILITÁRIOS ---
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-// 2. IMPORT DA IMAGEM LOCAL (Certifique-se que o arquivo existe em src/assets/)
-// Se não tiver a imagem ainda, comente esta linha e use a URL string abaixo
-import imgLogoPadrao from './assets/logo.png'; 
+// --- IMPORT DA IMAGEM LOCAL (LOGO DA CORRETORA) ---
+// Isso faz o Vite processar o arquivo em src/assets/logo.png
+import logoImg from './assets/logo.png';
 
 function App() {
   const [leads, setLeads] = useState([]);
@@ -32,9 +32,8 @@ function App() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterType, setFilterType] = useState('');
 
-  // 3. DEFININDO A IMAGEM IMPORTADA COMO PADRÃO
-  const DEFAULT_LOGO = imgLogoPadrao; 
-  // Caso prefira URL externa, use: const DEFAULT_LOGO = 'https://i.imgur.com/H6804rI.png';
+  // DEFININDO A LOGO PADRÃO COMO A IMAGEM IMPORTADA
+  const DEFAULT_LOGO = logoImg;
 
   // Configuração Visual
   const [appConfig, setAppConfig] = useState({ 
@@ -59,7 +58,8 @@ function App() {
             setAppConfig({
                 broker_name: data.broker_name || 'CRM Seguros',
                 primary_color: data.primary_color || '#0f172a',
-                logo_url: data.logo_url || DEFAULT_LOGO 
+                // Usa a do banco OU a imagem local importada
+                logo_url: (data.logo_url && data.logo_url.trim() !== '') ? data.logo_url : DEFAULT_LOGO 
             });
         }
     } catch(e) { console.error("Erro config", e); }
@@ -135,18 +135,17 @@ function App() {
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden font-sans text-slate-900">
       
-      {/* Sidebar - Personalizável */}
+      {/* Sidebar */}
       <aside 
         style={{ backgroundColor: appConfig.primary_color }} 
         className={`text-white transition-all duration-300 flex flex-col shadow-2xl z-30 ${sidebarOpen ? 'w-64' : 'w-20'}`}
       >
-        {/* A. LOGO DO SISTEMA CRM (Fixo no Topo) */}
+        {/* A. LOGO DO SISTEMA (Fixo no Topo) */}
         <div className="border-b border-white/10 pb-2 bg-black/10">
-            {/* O prop collapsed inverte a lógica do sidebarOpen (open=true -> collapsed=false) */}
             <Logo collapsed={!sidebarOpen} />
         </div>
 
-        {/* B. LOGO DO CLIENTE (Configurável) */}
+        {/* B. LOGO DO CLIENTE (Vindo do arquivo logo.png ou do banco) */}
         <div className={`flex flex-col items-center justify-center border-b border-white/10 p-4 transition-all ${sidebarOpen ? 'min-h-[100px]' : 'min-h-[60px]'}`}>
            {appConfig.logo_url ? (
              <img 
@@ -155,6 +154,7 @@ function App() {
                className={`object-contain transition-all duration-300 ${sidebarOpen ? 'h-16 max-w-[80%]' : 'h-8 w-8 rounded-full bg-white/10 p-1'}`} 
              />
            ) : (
+             /* Texto alternativo se não houver imagem */
              !sidebarOpen ? null : (
                  <h1 className="font-bold text-center leading-tight text-lg animate-fade-in">
                     {appConfig.broker_name}
@@ -163,7 +163,7 @@ function App() {
            )}
         </div>
 
-        {/* C. MENU DE NAVEGAÇÃO */}
+        {/* C. MENU */}
         <nav className="flex-1 py-6 px-3 space-y-2 overflow-y-auto">
            <button onClick={() => setView('kanban')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${view === 'kanban' ? 'bg-white/20 shadow-lg font-bold' : 'hover:bg-white/5'}`}>
               <LayoutDashboard size={20}/> {sidebarOpen && <span>Funil de Vendas</span>}
@@ -179,7 +179,7 @@ function App() {
         </nav>
       </aside>
 
-      {/* --- RESTO DO LAYOUT (MAIN) --- */}
+      {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 bg-slate-50 relative">
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-20">
           <div className="flex items-center gap-4">
