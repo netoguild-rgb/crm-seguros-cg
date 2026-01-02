@@ -1,7 +1,12 @@
+// ARQUIVO: frontend/src/services/api.js
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000', // Ajuste se seu backend estiver na nuvem
+  // MUDE DISTO:
+  // baseURL: 'http://localhost:3000'
+  
+  // PARA ISTO (use o link do SEU render):
+  baseURL: 'https://seu-backend-crm-seguros.onrender.com' 
 });
 
 export const getLeads = () => api.get('/leads');
