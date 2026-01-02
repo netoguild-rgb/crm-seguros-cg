@@ -4,15 +4,16 @@ import logoCrm from '../assets/logo.png';
 
 const Logo = ({ collapsed }) => {
   return (
-    <div className="flex items-center justify-center py-2 w-full overflow-hidden">
+    // Removi padding vertical e overflow para a imagem poder "sair" um pouco se necessário
+    <div className="flex items-center justify-center w-full">
       <img 
         src={logoCrm} 
         alt="CRM Seguros" 
-        // Ajuste de tamanho:
-        // collapsed (fechado): w-12 (ícone maiorzinho)
-        // aberto: w-[95%] (ocupa 95% da largura da sidebar)
-        className={`transition-all duration-300 object-contain ${
-          collapsed ? 'w-12' : 'w-[95%]'
+        // Configuração "Maximizada":
+        // collapsed: w-14 (ícone grande quando fechado)
+        // aberto: w-full + scale-125 (ocupa 100% da largura e dá um zoom de 25% extra)
+        className={`transition-all duration-300 object-contain filter drop-shadow-sm ${
+          collapsed ? 'w-14' : 'w-full scale-125'
         }`} 
       />
     </div>
