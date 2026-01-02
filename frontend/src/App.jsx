@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown } from 'lucide-react';
+import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown, Shield } from 'lucide-react';
 import { getLeads, updateLeadStatus, deleteLead, getConfig } from './services/api';
 import KanbanBoard from './components/KanbanBoard';
 import LeadModal from './components/LeadModal';
@@ -8,7 +8,7 @@ import WhatsAppModal from './components/WhatsAppModal';
 import Dashboard from './components/Dashboard';
 import ConfigPage from './components/ConfigPage';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable'; // Certifique-se de que está instalado: npm install jspdf-autotable
+import autoTable from 'jspdf-autotable';
 
 function App() {
   const [leads, setLeads] = useState([]);
@@ -22,10 +22,10 @@ function App() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterType, setFilterType] = useState('');
 
-  // CONFIGURAÇÃO VISUAL (CORRIGIDO: Cor inicial definida para evitar branco)
+  // Configuração Visual
   const [appConfig, setAppConfig] = useState({ 
     broker_name: 'CRM Seguros', 
-    primary_color: '#0f172a', // Cor padrão (Slate 900)
+    primary_color: '#0f172a', 
     logo_url: '' 
   });
 
@@ -42,7 +42,6 @@ function App() {
     try {
         const { data } = await getConfig();
         if(data) {
-            // Garante que se algum campo vier vazio, use o padrão
             setAppConfig({
                 broker_name: data.broker_name || 'CRM Seguros',
                 primary_color: data.primary_color || '#0f172a',
@@ -61,7 +60,6 @@ function App() {
     finally { setLoading(false); }
   };
 
-  // Lógica de Filtro
   const safeLeads = leads || [];
   const filtered = safeLeads.filter(l => {
     const matchesSearch = (l.nome?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || (l.whatsapp?.includes(searchTerm));
@@ -70,15 +68,11 @@ function App() {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  // Função PDF Rápido da Tabela (Mantendo layout profissional)
   const quickPdf = (lead, e) => {
     e.stopPropagation();
     const doc = new jsPDF();
-    
-    // Cabeçalho colorido com a cor da marca
     doc.setFillColor(appConfig.primary_color);
     doc.rect(0, 0, 210, 24, 'F');
-    
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(16);
     doc.text(appConfig.broker_name, 14, 15);
@@ -130,26 +124,43 @@ function App() {
         style={{ backgroundColor: appConfig.primary_color }} 
         className={`text-white transition-all duration-300 flex flex-col shadow-2xl z-30 ${sidebarOpen ? 'w-64' : 'w-20'}`}
       >
-        {/* Header da Sidebar: Logo + Nome */}
-        <div className="flex flex-col items-center justify-center border-b border-white/10 p-4 transition-all min-h-[80px]">
-           {appConfig.logo_url && (
-             <img 
-               src={appConfig.logo_url} 
-               alt="Logo" 
-               className={`object-contain mb-2 transition-all ${sidebarOpen ? 'h-12' : 'h-8'}`} 
-             />
-           )}
+        {/* HEADER DA SIDEBAR: LOGOS */}
+        <div className="flex flex-col items-center justify-center border-b border-white/10 p-4 transition-all min-h-[140px] space-y-4">
            
-           {/* Exibe o nome SEMPRE se a sidebar estiver aberta. Se fechada, exibe só se não tiver logo */}
-           {(sidebarOpen || !appConfig.logo_url) && (
-             <h1 className={`font-bold text-center leading-tight ${sidebarOpen ? 'text-base' : 'text-[10px]'}`}>
-                {appConfig.broker_name}
-             </h1>
-           )}
+           {/* 1. LOGO FIXA DO CRM (ESCUDO) */}
+           <div className="flex flex-col items-center animate-fade-in">
+              <div className="bg-white/10 p-2 rounded-full mb-1 border border-white/20">
+                <Shield size={sidebarOpen ? 24 : 20} className="text-white fill-white/20" />
+              </div>
+              {sidebarOpen && (
+                <span className="text-[10px] font-extrabold uppercase tracking-widest opacity-80">
+                    CRM Seguros
+                </span>
+              )}
+           </div>
+
+           {/* Divisória sutil */}
+           {sidebarOpen && <div className="w-1/2 border-t border-white/10"></div>}
+
+           {/* 2. LOGO CONFIGURÁVEL DO CLIENTE */}
+           <div className="flex flex-col items-center">
+                {appConfig.logo_url && (
+                    <img 
+                    src={appConfig.logo_url} 
+                    alt="Logo Corretora" 
+                    className={`object-contain mb-1 transition-all ${sidebarOpen ? 'h-10' : 'h-6'}`} 
+                    />
+                )}
+                
+                {(sidebarOpen || !appConfig.logo_url) && (
+                    <h1 className={`font-bold text-center leading-tight text-yellow-400 ${sidebarOpen ? 'text-sm' : 'text-[9px]'}`}>
+                        {appConfig.broker_name}
+                    </h1>
+                )}
+           </div>
         </div>
 
         <nav className="flex-1 py-6 px-3 space-y-2">
-           {/* Botão Funil de Vendas (Nome Corrigido) */}
            <button onClick={() => setView('kanban')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${view === 'kanban' ? 'bg-white/20 shadow-lg font-bold' : 'hover:bg-white/5'}`}>
               <LayoutDashboard size={20}/> {sidebarOpen && <span>Funil de Vendas</span>}
            </button>
@@ -221,12 +232,26 @@ function App() {
                 <>
                   <div className="mb-6 animate-fade-in">
                     <div style={{ background: `linear-gradient(to right, ${appConfig.primary_color}, #334155)` }} className="p-4 text-white rounded-xl shadow-lg flex justify-between items-center border border-white/10">
-                        <div>
-                            <h2 className="text-lg font-bold">Agente Digital</h2>
-                            <p className="text-xs opacity-80">Sistema Online</p>
+                        <div className="flex items-center gap-4">
+                            <div className="bg-white/20 p-3 rounded-full">
+                                <Globe size={28} className="text-blue-100"/>
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold">Agente Digital</h2>
+                                <p className="text-xs opacity-80 flex items-center gap-1">
+                                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Sistema Online
+                                </p>
+                            </div>
                         </div>
-                        <a href="https://crm-seguros.onrender.com" target="_blank" rel="noreferrer" className="bg-white/20 hover:bg-white/30 transition px-4 py-2 rounded text-sm font-bold flex gap-2">
-                            Acessar <ExternalLink size={16}/>
+                        
+                        {/* ATUALIZADO: LINK DO AGENTE DIGITAL */}
+                        <a 
+                            href="https://netoguild-rgb.github.io/Agente-cg-corretora/" 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="bg-white/20 hover:bg-white/30 transition px-5 py-2.5 rounded-lg text-sm font-bold flex gap-2 items-center border border-white/10 shadow-lg"
+                        >
+                            Acessar Agora <ExternalLink size={16}/>
                         </a>
                     </div>
                   </div>
