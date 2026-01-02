@@ -1,5 +1,3 @@
-// ARQUIVO: backend/index.js
-
 const express = require('express');
 const cors = require('cors');
 const { PrismaClient } = require('@prisma/client');
@@ -10,19 +8,22 @@ const prisma = new PrismaClient();
 app.use(express.json());
 app.use(cors()); 
 
-// Rota de Teste
-app.get('/', (req, res) => res.send('CRM Seguros API - Rodando 🚀'));
+app.get('/', (req, res) => res.send('CRM API - Online 🚀'));
 
-// --- ROTAS DE CONFIGURAÇÃO (NOVO) ---
-
-// 1. Obter Configuração
+// --- ROTAS DE CONFIGURAÇÃO (ATUALIZADA) ---
 app.get('/config', async (req, res) => {
   try {
-    // Busca ou cria se não existir (Padrão Singleton)
     let config = await prisma.config.findUnique({ where: { id: 'system' } });
     if (!config) {
       config = await prisma.config.create({
-        data: { id: 'system', promo_folder_link: '', message_header: '' }
+        data: { 
+            id: 'system', 
+            promo_folder_link: '', 
+            message_header: '',
+            broker_name: 'CRM Seguros',
+            primary_color: '#0f172a',
+            logo_url: ''
+        }
       });
     }
     res.json(config);
@@ -32,15 +33,15 @@ app.get('/config', async (req, res) => {
   }
 });
 
-// 2. Atualizar Configuração
 app.post('/config', async (req, res) => {
   try {
-    const { promo_folder_link, message_header } = req.body;
+    // Recebe todos os campos novos
+    const { promo_folder_link, message_header, broker_name, primary_color, logo_url } = req.body;
     
     const config = await prisma.config.upsert({
       where: { id: 'system' },
-      update: { promo_folder_link, message_header },
-      create: { id: 'system', promo_folder_link, message_header }
+      update: { promo_folder_link, message_header, broker_name, primary_color, logo_url },
+      create: { id: 'system', promo_folder_link, message_header, broker_name, primary_color, logo_url }
     });
     res.json(config);
   } catch (error) {
@@ -49,7 +50,6 @@ app.post('/config', async (req, res) => {
 });
 
 // --- ROTAS DE LEADS (MANTIDAS) ---
-
 app.post('/leads', async (req, res) => {
   try {
     const dados = req.body;
@@ -60,9 +60,9 @@ app.post('/leads', async (req, res) => {
 
     const lead = await prisma.lead.create({
       data: {
-        nome:           dados.nome || dados.Nome_completo || dados.name || "Sem Nome",
+        nome:           dados.nome || dados.Nome_completo || "Sem Nome",
         whatsapp:       whatsLimpo,
-        email:          dados.email || dados.mail,
+        email:          dados.email,
         cpf:            dados.cpf,
         status:         "NOVO",
         tipo_seguro:    dados.tipo_seguro,

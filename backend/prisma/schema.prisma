@@ -1,5 +1,3 @@
-// ARQUIVO: backend/prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,31 +11,31 @@ model Lead {
   id        Int      @id @default(autoincrement())
   criadoEm  DateTime @default(now())
   
-  // Campos Principais
   nome                String
   whatsapp            String
   email               String?
   cpf                 String?
   status              String   @default("NOVO")
   
-  // Seguros / Veículo
   tipo_seguro         String?
   placa               String?
   modelo_veiculo      String?
   ano_veiculo         String?
   uso_veiculo         String?
 
-  // Link para pasta individual do cliente
   link_pasta          String?
-
-  // Campos Extras (JSON)
   dados_extras        Json?
 }
 
-// NOVA TABELA: Configurações do Sistema
 model Config {
   id                  String   @id @default("system")
-  promo_folder_link   String?  // Link da Pasta de Promoções (Nuvem)
-  message_header      String?  // Texto padrão (Cabeçalho) para o WhatsApp
+  promo_folder_link   String?
+  message_header      String?
+  
+  // --- NOVOS CAMPOS (Tarefa 4) ---
+  broker_name         String?  @default("CRM Seguros") // Nome da Corretora
+  primary_color       String?  @default("#0f172a")     // Cor do CRM (Hex)
+  logo_url            String?                          // URL da Logo
+  
   updatedAt           DateTime @updatedAt
 }

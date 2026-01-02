@@ -1,129 +1,121 @@
-// ARQUIVO: frontend/src/components/WhatsAppModal.jsx
 import React, { useState, useEffect } from 'react';
-import { X, ExternalLink, Cloud, Image as ImageIcon } from 'lucide-react';
+import { X, ExternalLink, Cloud, Image as ImageIcon, Users, Check } from 'lucide-react';
 import { getConfig } from '../services/api';
 
-const WhatsAppModal = ({ lead, onClose }) => {
-  if (!lead) return null;
+const WhatsAppModal = ({ leads, onClose }) => { // Recebe 'leads' (array) agora
+  if (!leads || leads.length === 0) return null;
 
-  const [customMessage, setCustomMessage] = useState('');
+  const [message, setMessage] = useState('');
   const [header, setHeader] = useState('');
   const [promoLink, setPromoLink] = useState('');
   const [loading, setLoading] = useState(true);
+  
+  // Controle de envio em massa
+  const [sentIds, setSentIds] = useState([]); 
 
-  // Carrega as configurações ao abrir o modal
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const { data } = await getConfig();
-        if (data) {
-          setHeader(data.message_header || '');
-          setPromoLink(data.promo_folder_link || '');
+    getConfig().then(res => {
+        if(res.data) {
+            setHeader(res.data.message_header || '');
+            setPromoLink(res.data.promo_folder_link || '');
         }
-      } catch (error) {
-        console.error("Erro config", error);
-      } finally {
         setLoading(false);
-      }
-    };
-    loadData();
+    });
   }, []);
 
-  const handleSend = () => {
-    // 1. Limpeza do número (Remove tudo que não for dígito)
-    // Se o número no banco for (83) 9999-9999, vira 8399999999
-    const cleanPhone = lead.whatsapp ? lead.whatsapp.replace(/\D/g, '') : '';
-    
-    if (!cleanPhone || cleanPhone.length < 10) {
-      alert('Este lead não tem um número de WhatsApp válido.');
-      return;
-    }
+  const getCleanPhone = (phone) => phone ? phone.replace(/\D/g, '') : '';
 
-    // 2. Monta a Mensagem Final (Cabeçalho + Mensagem Personalizada)
-    // Se não tiver mensagem personalizada, manda só o cabeçalho.
-    const messageParts = [];
-    if (header) messageParts.push(header);
-    if (customMessage) messageParts.push(customMessage);
-    
-    const finalMessage = messageParts.join('\n\n');
-    const encodedText = encodeURIComponent(finalMessage);
-    
-    // 3. Link do WhatsApp Web
-    const waUrl = `https://wa.me/55${cleanPhone}?text=${encodedText}`;
-
-    // 4. Lógica de "Anexar Imagem Nuvem"
+  const handleOpenFolder = () => {
     if (promoLink) {
-        if (promoLink.startsWith('http')) {
-            window.open(promoLink, '_blank'); // Abre pasta em nova aba
-        } else {
-            // Se for local
+        if (promoLink.startsWith('http')) window.open(promoLink, '_blank');
+        else {
             navigator.clipboard.writeText(promoLink);
-            alert('Link da pasta copiado! Cole no Explorer.');
+            alert('Link copiado!');
         }
     } else {
-        alert('Atenção: Nenhuma pasta de promoções configurada na aba Configurações.');
+        alert('Pasta de promoções não configurada.');
+    }
+  };
+
+  const handleSendOne = (lead) => {
+    const cleanPhone = getCleanPhone(lead.whatsapp);
+    if (!cleanPhone || cleanPhone.length < 10) {
+        alert(`Número inválido para ${lead.nome}`);
+        return;
     }
 
-    // 5. Abre o WhatsApp (com pequeno delay para o navegador não bloquear popups múltiplos)
-    setTimeout(() => {
-        window.open(waUrl, '_blank');
-        onClose();
-    }, 500);
+    const fullMsg = `${header}\n\nOlá ${lead.nome},\n${message}`;
+    const encoded = encodeURIComponent(fullMsg);
+    const url = `https://wa.me/55${cleanPhone}?text=${encoded}`;
+    
+    window.open(url, '_blank');
+    
+    // Marca como enviado visualmente
+    if(!sentIds.includes(lead.id)) setSentIds([...sentIds, lead.id]);
   };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md animate-fade-in overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg animate-fade-in overflow-hidden flex flex-col max-h-[90vh]">
         
-        {/* Header Verde */}
-        <div className="bg-green-600 p-4 flex justify-between items-center text-white">
+        <div className="bg-green-600 p-4 flex justify-between items-center text-white shrink-0">
           <h2 className="text-lg font-bold flex items-center gap-2">
-            <ImageIcon size={24}/> Disparo de Promoções
+            {leads.length > 1 ? <Users size={24}/> : <ImageIcon size={24}/>} 
+            {leads.length > 1 ? `Disparo em Massa (${leads.length})` : 'Disparo Promocional'}
           </h2>
           <button onClick={onClose} className="hover:bg-white/20 p-2 rounded-full"><X size={20}/></button>
         </div>
 
-        <div className="p-6">
-          {loading ? (
-            <p className="text-center py-4 text-slate-500">Carregando configurações...</p>
-          ) : (
+        <div className="p-6 overflow-y-auto flex-1">
+          {loading ? <p>Carregando...</p> : (
             <div className="space-y-4">
-              
-              {/* Preview do Cabeçalho */}
-              <div className="bg-slate-100 p-3 rounded-lg border border-slate-200">
-                <label className="text-xs font-bold text-slate-500 uppercase">Cabeçalho (Fixo)</label>
-                <p className="text-sm text-slate-700 italic whitespace-pre-wrap mt-1">
-                  {header || "(Nenhum cabeçalho configurado na aba Configurações)"}
-                </p>
-              </div>
+               
+               {/* Configuração da Mensagem */}
+               <div className="bg-slate-50 p-3 rounded border">
+                    <label className="text-xs font-bold text-slate-500 uppercase">Cabeçalho</label>
+                    <p className="text-xs text-slate-700 italic mb-2">{header || '(Vazio)'}</p>
+                    
+                    <label className="text-xs font-bold text-slate-500 uppercase">Sua Mensagem</label>
+                    <textarea 
+                        className="w-full border p-2 rounded text-sm" 
+                        rows="3"
+                        placeholder="Escreva o conteúdo da campanha..."
+                        value={message}
+                        onChange={e => setMessage(e.target.value)}
+                    />
+               </div>
 
-              {/* Mensagem Personalizada */}
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Mensagem Adicional</label>
-                <textarea
-                  className="w-full mt-1 border border-slate-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-green-500 outline-none"
-                  rows="4"
-                  placeholder="Digite detalhes específicos para este cliente..."
-                  value={customMessage}
-                  onChange={(e) => setCustomMessage(e.target.value)}
-                ></textarea>
-              </div>
+               <button onClick={handleOpenFolder} className="w-full py-2 bg-blue-50 text-blue-700 rounded font-bold text-sm flex items-center justify-center gap-2 border border-blue-200 hover:bg-blue-100">
+                    <Cloud size={16}/> Abrir Pasta de Imagens (Nuvem)
+               </button>
 
-              {/* Aviso sobre Imagem */}
-              <div className="flex items-start gap-2 text-xs text-blue-700 bg-blue-50 p-2 rounded">
-                <Cloud size={16} className="shrink-0 mt-0.5"/>
-                <span>
-                  Ao enviar, abriremos a <b>Pasta de Promoções</b> e o <b>WhatsApp</b>. 
-                  Basta arrastar a imagem da pasta para a conversa.
-                </span>
-              </div>
+               <hr />
 
-              <button 
-                onClick={handleSend}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow-md transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
-              >
-                <ExternalLink size={20}/> Abrir Pasta & Enviar
-              </button>
+               {/* Lista de Disparo (Tarefa 1) */}
+               <div className="space-y-2">
+                    <h3 className="font-bold text-slate-700 text-sm">Lista de Envio:</h3>
+                    <div className="max-h-60 overflow-y-auto border rounded divide-y">
+                        {leads.map(lead => {
+                            const isSent = sentIds.includes(lead.id);
+                            return (
+                                <div key={lead.id} className={`flex justify-between items-center p-3 ${isSent ? 'bg-green-50' : 'bg-white'}`}>
+                                    <div className="truncate pr-2">
+                                        <p className="font-bold text-sm text-slate-800">{lead.nome}</p>
+                                        <p className="text-xs text-slate-500">{lead.whatsapp}</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => handleSendOne(lead)}
+                                        className={`px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1 transition
+                                            ${isSent ? 'bg-slate-200 text-slate-500' : 'bg-green-600 text-white hover:bg-green-700'}`}
+                                    >
+                                        {isSent ? <><Check size={12}/> Enviado</> : <><ExternalLink size={12}/> Enviar</>}
+                                    </button>
+                                </div>
+                            )
+                        })}
+                    </div>
+               </div>
+
             </div>
           )}
         </div>
@@ -131,5 +123,4 @@ const WhatsAppModal = ({ lead, onClose }) => {
     </div>
   );
 };
-
 export default WhatsAppModal;
