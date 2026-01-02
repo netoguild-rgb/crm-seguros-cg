@@ -17,7 +17,6 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 // --- IMPORT DA IMAGEM LOCAL (LOGO DA CORRETORA) ---
-// Isso faz o Vite processar o arquivo em src/assets/logo.png
 import logoImg from './assets/logo.png';
 
 function App() {
@@ -58,7 +57,6 @@ function App() {
             setAppConfig({
                 broker_name: data.broker_name || 'CRM Seguros',
                 primary_color: data.primary_color || '#0f172a',
-                // Usa a do banco OU a imagem local importada
                 logo_url: (data.logo_url && data.logo_url.trim() !== '') ? data.logo_url : DEFAULT_LOGO 
             });
         }
@@ -141,12 +139,13 @@ function App() {
         className={`text-white transition-all duration-300 flex flex-col shadow-2xl z-30 ${sidebarOpen ? 'w-64' : 'w-20'}`}
       >
         {/* A. LOGO DO SISTEMA (Fixo no Topo) */}
-        <div className="border-b border-white/10 pb-2 bg-black/10">
+        {/* REMOVIDO: bg-black/10 e border-b para limpar totalmente o fundo */}
+        <div className="pb-2 pt-2">
             <Logo collapsed={!sidebarOpen} />
         </div>
 
         {/* B. LOGO DO CLIENTE (Vindo do arquivo logo.png ou do banco) */}
-        <div className={`flex flex-col items-center justify-center border-b border-white/10 p-4 transition-all ${sidebarOpen ? 'min-h-[100px]' : 'min-h-[60px]'}`}>
+        <div className={`flex flex-col items-center justify-center border-t border-white/10 p-4 transition-all ${sidebarOpen ? 'min-h-[100px]' : 'min-h-[60px]'}`}>
            {appConfig.logo_url ? (
              <img 
                src={appConfig.logo_url} 
