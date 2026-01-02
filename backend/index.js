@@ -8,11 +8,16 @@ const app = express();
 const prisma = new PrismaClient();
 
 app.use(express.json());
-app.use(cors());
+
+// CONFIGURAÇÃO CORS ATUALIZADA
+// Permite que qualquer origem (seu frontend React) acesse a API
+app.use(cors()); 
 
 // Rota de Teste
 app.get('/', (req, res) => res.send('CRM Seguros API - Rodando 🚀'));
 
+// ... (MANTENHA TODO O RESTANTE DO CÓDIGO IGUAL ABAIXO) ...
+// As rotas POST /leads, GET /leads, PATCH e DELETE continuam iguais - Rodando 🚀'));
 // 1. RECEBER LEAD (Salva TUDO)
 app.post('/leads', async (req, res) => {
   try {
