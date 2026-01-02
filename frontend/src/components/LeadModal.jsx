@@ -1,57 +1,41 @@
 // ARQUIVO: frontend/src/components/LeadModal.jsx
 import React, { useState } from 'react';
-import { X, Phone, Calendar, User, FileText, Trash2, ExternalLink, Folder, FolderOpen, Save, Edit } from 'lucide-react';
-import { updateLead } from '../services/api'; 
+import { X, Phone, Calendar, User, FileText, Trash2, ExternalLink, FolderOpen, Cloud, Edit, Save } from 'lucide-react';
+import { updateLead } from '../services/api';
+import WhatsAppModal from './WhatsAppModal'; // Importe o Modal Novo
 
 const LeadModal = ({ lead, onClose, onDelete, onUpdate }) => {
   if (!lead) return null;
 
-  // Estado das Abas
-  const [activeTab, setActiveTab] = useState('detalhes'); // 'detalhes' ou 'arquivos'
+  const [activeTab, setActiveTab] = useState('detalhes');
+  const [showWaModal, setShowWaModal] = useState(false); // Controle do Modal de Disparo
 
-  // Estados para Edição do Link da Pasta
+  // ... (Estados do link da pasta individual - MANTIDOS IGUAIS) ...
   const [pastaLink, setPastaLink] = useState(lead.link_pasta || '');
-  const [isEditingLink, setIsEditingLink] = useState(!lead.link_pasta); // Se não tem link, já abre editando
+  const [isEditingLink, setIsEditingLink] = useState(!lead.link_pasta);
   const [loadingLink, setLoadingLink] = useState(false);
 
-  // Função para salvar o link no banco
   const handleSaveLink = async () => {
     setLoadingLink(true);
     try {
       await updateLead(lead.id, { link_pasta: pastaLink });
-      
-      // Atualiza o objeto localmente para refletir na tela sem recarregar tudo
       lead.link_pasta = pastaLink;
       setIsEditingLink(false);
-      
-      if(onUpdate) onUpdate(); // Avisa o componente pai se necessário
+      if(onUpdate) onUpdate();
       alert('Local dos arquivos salvo com sucesso!');
-    } catch (error) {
-      alert('Erro ao salvar o link da pasta.');
-    } finally {
-      setLoadingLink(false);
-    }
+    } catch (error) { alert('Erro ao salvar.'); } finally { setLoadingLink(false); }
   };
 
-  // Parser seguro do JSON (dados_extras)
+  // Parser do JSON
   let extraData = {};
-  try {
-    extraData = typeof lead.dados_extras === 'string' 
-      ? JSON.parse(lead.dados_extras) 
-      : lead.dados_extras || {};
-  } catch (e) { console.error("Erro parser", e); }
-
+  try { extraData = typeof lead.dados_extras === 'string' ? JSON.parse(lead.dados_extras) : lead.dados_extras || {}; } catch (e) {}
   const displayData = { ...extraData, ...lead };
-  
-  // Chaves que não queremos exibir na lista genérica
   const ignoredKeys = ['id', 'dados_extras', 'criadoEm', 'updatedAt', 'status', 'nome', 'whatsapp', 'email', 'cpf', 'tipo_seguro', 'modelo_veiculo', 'link_pasta'];
-
-  const isUrl = (string) => {
-    try { return Boolean(new URL(string)); } catch(e){ return false; }
-  }
+  const isUrl = (s) => { try { return Boolean(new URL(s)); } catch(e){ return false; } }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-fade-in">
         
         {/* Header */}
@@ -66,40 +50,41 @@ const LeadModal = ({ lead, onClose, onDelete, onUpdate }) => {
           <button onClick={onClose} className="hover:bg-white/10 p-2 rounded-full transition"><X size={20}/></button>
         </div>
 
-        {/* Abas de Navegação */}
+        {/* Abas */}
         <div className="flex border-b border-slate-200 bg-slate-50">
-            <button 
-                onClick={() => setActiveTab('detalhes')}
-                className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 border-b-2 transition
-                ${activeTab === 'detalhes' ? 'border-crm-600 text-crm-600 bg-white' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-            >
+            <button onClick={() => setActiveTab('detalhes')} className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 border-b-2 transition ${activeTab === 'detalhes' ? 'border-crm-600 text-crm-600 bg-white' : 'border-transparent text-slate-500'}`}>
                 <FileText size={18}/> Detalhes
             </button>
-            <button 
-                onClick={() => setActiveTab('arquivos')}
-                className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 border-b-2 transition
-                ${activeTab === 'arquivos' ? 'border-crm-600 text-crm-600 bg-white' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-            >
-                <FolderOpen size={18}/> Arquivos / Pasta
+            <button onClick={() => setActiveTab('arquivos')} className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 border-b-2 transition ${activeTab === 'arquivos' ? 'border-crm-600 text-crm-600 bg-white' : 'border-transparent text-slate-500'}`}>
+                <FolderOpen size={18}/> Pasta Cliente
             </button>
         </div>
 
-        {/* Body do Modal */}
+        {/* Body */}
         <div className="p-6 overflow-y-auto flex-1 bg-slate-50">
-
-          {/* === ABA 1: DETALHES === */}
+          
           {activeTab === 'detalhes' && (
             <div className="animate-fade-in">
-                <div className="flex gap-3 mb-6">
+                {/* BOTÕES DE AÇÃO - ATUALIZADO */}
+                <div className="flex gap-2 mb-6 flex-wrap sm:flex-nowrap">
+                    {/* Botão WhatsApp Comum */}
                     <a href={`https://wa.me/55${lead.whatsapp}`} target="_blank" rel="noreferrer" className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-bold shadow-md transition">
                       <Phone size={20}/> WhatsApp
                     </a>
-                    <button onClick={() => { if(confirm('Excluir este lead?')) onDelete(lead.id); }} className="px-4 border border-red-200 text-red-600 bg-white hover:bg-red-50 rounded-lg transition font-medium">
+
+                    {/* NOVO BOTÃO: Disparo Nuvem */}
+                    <button 
+                        onClick={() => setShowWaModal(true)} 
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-bold shadow-md transition"
+                    >
+                        <Cloud size={20}/> Disparo Nuvem
+                    </button>
+
+                    <button onClick={() => { if(confirm('Excluir?')) onDelete(lead.id); }} className="px-4 border border-red-200 text-red-600 bg-white hover:bg-red-50 rounded-lg transition">
                       <Trash2 size={20}/>
                     </button>
                 </div>
 
-                {/* Cards Resumo */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
                         <span className="text-xs font-bold text-slate-400 uppercase">Seguro</span>
@@ -111,23 +96,18 @@ const LeadModal = ({ lead, onClose, onDelete, onUpdate }) => {
                     </div>
                 </div>
 
-                {/* Lista de Campos Extras */}
                 <div className="space-y-3">
                     {Object.entries(displayData).map(([key, value]) => {
                         if (ignoredKeys.includes(key) || !value) return null;
-                        
                         const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                         const isLink = typeof value === 'string' && (value.startsWith('http') || isUrl(value));
-
                         return (
-                            <div key={key} className="flex flex-col sm:flex-row justify-between sm:items-center p-3 bg-white rounded-lg border border-slate-100 hover:border-crm-500/30 transition">
-                                <span className="font-medium text-slate-500 mb-1 sm:mb-0 text-sm">{label}</span>
+                            <div key={key} className="flex justify-between p-3 bg-white rounded-lg border border-slate-100">
+                                <span className="font-medium text-slate-500 text-sm">{label}</span>
                                 {isLink ? (
-                                    <a href={value} target="_blank" rel="noreferrer" className="text-crm-600 hover:underline flex items-center gap-1 font-medium bg-crm-100 px-3 py-1 rounded-full text-xs w-fit">
-                                        <ExternalLink size={14}/> Abrir Link
-                                    </a>
+                                    <a href={value} target="_blank" rel="noreferrer" className="text-crm-600 hover:underline text-xs flex items-center gap-1 bg-crm-100 px-2 py-1 rounded-full"><ExternalLink size={12}/> Link</a>
                                 ) : (
-                                    <span className="text-slate-900 font-semibold text-right break-words max-w-[60%] text-sm">{value.toString()}</span>
+                                    <span className="text-slate-900 font-semibold text-sm">{value.toString()}</span>
                                 )}
                             </div>
                         )
@@ -136,85 +116,33 @@ const LeadModal = ({ lead, onClose, onDelete, onUpdate }) => {
             </div>
           )}
 
-          {/* === ABA 2: ARQUIVOS (PASTA) === */}
           {activeTab === 'arquivos' && (
             <div className="flex flex-col items-center justify-center h-full text-center space-y-6 animate-fade-in">
-                
-                <div className="bg-crm-100 p-6 rounded-full text-crm-600">
-                    <Folder size={64} />
-                </div>
-
+                <div className="bg-crm-100 p-6 rounded-full text-crm-600"><FolderOpen size={64} /></div>
                 <div className="max-w-md">
-                    <h3 className="text-xl font-bold text-slate-800">Local dos Arquivos</h3>
-                    <p className="text-slate-500 text-sm mt-2">
-                        Gerencie onde os documentos deste cliente estão salvos (Google Drive, Dropbox ou Rede Local).
-                    </p>
+                    <h3 className="text-xl font-bold text-slate-800">Pasta do Cliente</h3>
+                    <p className="text-slate-500 text-sm mt-2">Arquivos específicos deste lead.</p>
                 </div>
 
-                {/* MODO VISUALIZAÇÃO (Se já tiver link salvo e não estiver editando) */}
                 {!isEditingLink && lead.link_pasta && (
                     <div className="w-full space-y-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                         <div className="text-left">
-                            <label className="text-xs font-bold text-slate-400 uppercase">Pasta Vinculada</label>
-                            <div className="flex items-center gap-2 mt-1 break-all bg-slate-50 p-2 rounded border border-slate-100 text-slate-600 text-sm">
-                                <Folder size={16} className="shrink-0"/> {lead.link_pasta}
-                            </div>
-                         </div>
-
-                        <a 
-                            href={lead.link_pasta} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-lg flex items-center justify-center gap-2 font-bold shadow-md transition transform hover:-translate-y-1"
-                            onClick={(e) => {
-                                // Se for caminho local (não começa com http), o navegador não abre.
-                                // Avisamos o usuário para copiar.
-                                if(!lead.link_pasta.startsWith('http')) {
-                                    e.preventDefault();
-                                    navigator.clipboard.writeText(lead.link_pasta);
-                                    alert('Caminho Local copiado! Cole no seu Explorador de Arquivos.');
-                                }
-                            }}
-                        >
+                        <div className="flex items-center gap-2 bg-slate-50 p-2 rounded border border-slate-100 text-slate-600 text-sm break-all justify-center">
+                            {lead.link_pasta}
+                        </div>
+                        <a href={lead.link_pasta} target="_blank" rel="noreferrer" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-bold shadow-md transition">
                             <ExternalLink size={20}/> Abrir Pasta
                         </a>
-
-                        <button 
-                            onClick={() => setIsEditingLink(true)} 
-                            className="text-slate-500 hover:text-crm-600 underline text-sm flex items-center justify-center gap-1 w-full mt-2"
-                        >
-                            <Edit size={14}/> Alterar pasta
-                        </button>
+                        <button onClick={() => setIsEditingLink(true)} className="text-slate-500 underline text-sm flex items-center justify-center gap-1 w-full"><Edit size={14}/> Alterar</button>
                     </div>
                 )}
 
-                {/* MODO EDIÇÃO (Se não tiver link ou clicou em alterar) */}
                 {isEditingLink && (
-                    <div className="w-full bg-white p-5 rounded-xl border-2 border-dashed border-slate-300 shadow-sm animate-fade-in text-left">
-                        <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">
-                            Cole o Link ou Caminho da Pasta
-                        </label>
-                        
+                    <div className="w-full bg-white p-5 rounded-xl border-2 border-dashed border-slate-300 shadow-sm text-left">
+                        <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Link ou Caminho</label>
                         <div className="flex gap-2">
-                            <input 
-                                type="text" 
-                                value={pastaLink}
-                                onChange={(e) => setPastaLink(e.target.value)}
-                                placeholder="Ex: https://drive.google.com/..."
-                                className="flex-1 p-3 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-crm-500 text-sm"
-                            />
-                            <button 
-                                onClick={handleSaveLink}
-                                disabled={loadingLink}
-                                className="bg-crm-600 text-white px-4 rounded-lg font-bold hover:bg-crm-700 transition flex items-center gap-2"
-                            >
-                                {loadingLink ? '...' : <><Save size={18} /> Salvar</>}
-                            </button>
+                            <input type="text" value={pastaLink} onChange={(e) => setPastaLink(e.target.value)} placeholder="Ex: https://drive.google.com/..." className="flex-1 p-3 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-crm-500"/>
+                            <button onClick={handleSaveLink} disabled={loadingLink} className="bg-crm-600 text-white px-4 rounded-lg"><Save size={18}/></button>
                         </div>
-                        
-                        <p className="text-xs text-slate-400 mt-3 flex items-start gap-1">
-                            ℹ️ <b>Dica:</b> Vá até a pasta no seu computador ou no Google Drive, copie o endereço e cole aqui.
-                        </p>
                     </div>
                 )}
             </div>
@@ -223,6 +151,10 @@ const LeadModal = ({ lead, onClose, onDelete, onUpdate }) => {
         </div>
       </div>
     </div>
+    
+    {/* MODAL DE DISPARO (Renderizado condicionalmente) */}
+    {showWaModal && <WhatsAppModal lead={lead} onClose={() => setShowWaModal(false)} />}
+    </>
   );
 };
 

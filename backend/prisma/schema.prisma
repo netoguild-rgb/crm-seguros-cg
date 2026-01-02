@@ -27,9 +27,16 @@ model Lead {
   ano_veiculo         String?
   uso_veiculo         String?
 
-  // NOVO CAMPO: Link para pasta externa (Drive, Dropbox, Rede Local)
+  // Link para pasta individual do cliente
   link_pasta          String?
 
   // Campos Extras (JSON)
   dados_extras        Json?
+}
+
+// NOVA TABELA: Configurações do Sistema (Pasta de Promoções)
+model Config {
+  id                  String   @id @default("system") // ID fixo
+  promo_folder_link   String?  // Link da Pasta de Promoções (Google Drive/OneDrive)
+  updatedAt           DateTime @updatedAt
 }
