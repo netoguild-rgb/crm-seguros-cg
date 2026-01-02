@@ -127,10 +127,10 @@ function App() {
         <div className="flex-1 overflow-y-auto p-6 relative">
             {view === 'kanban' ? (
                 <>
-                  {/* TAREFA 1: BOTÃO AGENTE DIGITAL (AQUI!) */}
+                  {/* TAREFA 1: BOTÃO AGENTE DIGITAL (ATUALIZADO AQUI!) */}
                   <div className="mb-6 animate-fade-in">
                     <a 
-                      href="https://netoguild-rgb.github.io/Agente-cg-corretora/" 
+                      href="https://crm-seguros.onrender.com" 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.01] transition duration-300 group cursor-pointer border border-slate-700"
@@ -222,13 +222,13 @@ function App() {
 
       {selectedLead && (
         <LeadModal lead={selectedLead} onClose={() => setSelectedLead(null)} 
-            onDelete={async (id) => { await deleteLead(id); fetchLeads(); onClose(); }} />
+           onDelete={async (id) => { await deleteLead(id); fetchLeads(); onClose(); }} />
       )}
 
       {isNewLeadModalOpen && (
         <NewLeadModal 
-            onClose={() => setIsNewLeadModalOpen(false)}
-            onSuccess={() => { fetchLeads(); }}
+           onClose={() => setIsNewLeadModalOpen(false)}
+           onSuccess={() => { fetchLeads(); }}
         />
       )}
 
