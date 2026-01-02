@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Phone, Calendar, User, FileText, Trash2, ExternalLink, Download } from 'lucide-react';
+import { X, Phone, Calendar, User, FileText, Trash2, ExternalLink } from 'lucide-react';
 
 const LeadModal = ({ lead, onClose, onDelete }) => {
   if (!lead) return null;
@@ -13,8 +13,9 @@ const LeadModal = ({ lead, onClose, onDelete }) => {
   } catch (e) { console.error("Erro parser", e); }
 
   const displayData = { ...extraData, ...lead };
-  // Campos que já mostramos no header ou que são técnicos
-  const ignoredKeys = ['id', 'dados_extras', 'criadoEm', 'updatedAt', 'status', 'nome', 'whatsapp', 'email', 'cpf'];
+  
+  // AQUI FOI FEITA A ALTERAÇÃO: Adicionados 'tipo_seguro' e 'modelo_veiculo' para não duplicar
+  const ignoredKeys = ['id', 'dados_extras', 'criadoEm', 'updatedAt', 'status', 'nome', 'whatsapp', 'email', 'cpf', 'tipo_seguro', 'modelo_veiculo'];
 
   const isUrl = (string) => {
     try { return Boolean(new URL(string)); } catch(e){ return false; }
@@ -39,7 +40,7 @@ const LeadModal = ({ lead, onClose, onDelete }) => {
         {/* Body */}
         <div className="p-6 overflow-y-auto flex-1 bg-slate-50">
           <div className="flex gap-3 mb-6">
-            <a href={`https://wa.me/55${lead.whatsapp}`} target="_blank" className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-bold shadow-md transition">
+            <a href={`https://wa.me/55${lead.whatsapp}`} target="_blank" rel="noreferrer" className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-bold shadow-md transition">
               <Phone size={20}/> WhatsApp
             </a>
             <button onClick={() => { if(confirm('Excluir este lead?')) onDelete(lead.id); }} className="px-4 border border-red-200 text-red-600 bg-white hover:bg-red-50 rounded-lg transition font-medium">
@@ -47,6 +48,7 @@ const LeadModal = ({ lead, onClose, onDelete }) => {
             </button>
           </div>
 
+          {/* Destaques (Já mostra Tipo e Veículo aqui) */}
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
                 <span className="text-xs font-bold text-slate-400 uppercase">Seguro/Interesse</span>
@@ -65,6 +67,7 @@ const LeadModal = ({ lead, onClose, onDelete }) => {
           <div className="space-y-3">
             {Object.entries(displayData).map(([key, value]) => {
                 if (ignoredKeys.includes(key) || !value) return null;
+                // Formatação bonita do nome da variável (ex: obs_final -> Obs Final)
                 const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                 const isLink = typeof value === 'string' && (value.startsWith('http') || isUrl(value));
 

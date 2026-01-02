@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, BarChart3 } from 'lucide-react';
-import { getLeads, updateLeadStatus, deleteLead, createLead } from './services/api';
+import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw } from 'lucide-react';
+import { getLeads, updateLeadStatus, deleteLead } from './services/api'; // createLead foi movido para o modal
 import KanbanBoard from './components/KanbanBoard';
 import LeadModal from './components/LeadModal';
+import NewLeadModal from './components/NewLeadModal'; // <--- IMPORTANTE
 
 function App() {
   const [leads, setLeads] = useState([]);
@@ -11,6 +12,9 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(false);
+  
+  // Controle do Modal de Novo Lead
+  const [isNewLeadModalOpen, setIsNewLeadModalOpen] = useState(false);
 
   const fetchLeads = async () => {
     setLoading(true);
@@ -23,12 +27,9 @@ function App() {
 
   useEffect(() => { fetchLeads(); }, []);
 
-  const handleNewLead = async () => {
-    const nome = prompt("Nome do Cliente:");
-    if(!nome) return;
-    const whats = prompt("WhatsApp:");
-    await createLead({ nome, whatsapp: whats, status: "NOVO", tipo_seguro: "Manual" });
-    fetchLeads();
+  // Agora apenas abre o modal
+  const handleNewLead = () => {
+    setIsNewLeadModalOpen(true);
   };
 
   const onDragEnd = async (result) => {
@@ -120,9 +121,18 @@ function App() {
         </div>
       </main>
 
+      {/* Modal de Detalhes (Existente) */}
       {selectedLead && (
         <LeadModal lead={selectedLead} onClose={() => setSelectedLead(null)} 
             onDelete={async (id) => { await deleteLead(id); fetchLeads(); onClose(); }} />
+      )}
+
+      {/* Modal de Novo Lead (NOVO) */}
+      {isNewLeadModalOpen && (
+        <NewLeadModal 
+            onClose={() => setIsNewLeadModalOpen(false)}
+            onSuccess={() => { fetchLeads(); }}
+        />
       )}
     </div>
   );
