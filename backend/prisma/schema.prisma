@@ -34,9 +34,10 @@ model Lead {
   dados_extras        Json?
 }
 
-// NOVA TABELA: Configurações do Sistema (Pasta de Promoções)
+// NOVA TABELA: Configurações do Sistema
 model Config {
-  id                  String   @id @default("system") // ID fixo
-  promo_folder_link   String?  // Link da Pasta de Promoções (Google Drive/OneDrive)
+  id                  String   @id @default("system")
+  promo_folder_link   String?  // Link da Pasta de Promoções (Nuvem)
+  message_header      String?  // Texto padrão (Cabeçalho) para o WhatsApp
   updatedAt           DateTime @updatedAt
 }

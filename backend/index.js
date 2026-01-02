@@ -13,16 +13,16 @@ app.use(cors());
 // Rota de Teste
 app.get('/', (req, res) => res.send('CRM Seguros API - Rodando 🚀'));
 
-// --- NOVAS ROTAS DE CONFIGURAÇÃO ---
+// --- ROTAS DE CONFIGURAÇÃO (NOVO) ---
 
-// 1. Pegar Configuração (Pasta Promoções)
+// 1. Obter Configuração
 app.get('/config', async (req, res) => {
   try {
     // Busca ou cria se não existir (Padrão Singleton)
     let config = await prisma.config.findUnique({ where: { id: 'system' } });
     if (!config) {
       config = await prisma.config.create({
-        data: { id: 'system', promo_folder_link: '' }
+        data: { id: 'system', promo_folder_link: '', message_header: '' }
       });
     }
     res.json(config);
@@ -35,11 +35,12 @@ app.get('/config', async (req, res) => {
 // 2. Atualizar Configuração
 app.post('/config', async (req, res) => {
   try {
-    const { promo_folder_link } = req.body;
+    const { promo_folder_link, message_header } = req.body;
+    
     const config = await prisma.config.upsert({
       where: { id: 'system' },
-      update: { promo_folder_link },
-      create: { id: 'system', promo_folder_link }
+      update: { promo_folder_link, message_header },
+      create: { id: 'system', promo_folder_link, message_header }
     });
     res.json(config);
   } catch (error) {
@@ -47,7 +48,7 @@ app.post('/config', async (req, res) => {
   }
 });
 
-// --- ROTAS DE LEADS EXISTENTES (MANTIDAS) ---
+// --- ROTAS DE LEADS (MANTIDAS) ---
 
 app.post('/leads', async (req, res) => {
   try {

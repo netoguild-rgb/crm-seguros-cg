@@ -1,16 +1,16 @@
 // ARQUIVO: frontend/src/components/LeadModal.jsx
 import React, { useState } from 'react';
-import { X, Phone, Calendar, User, FileText, Trash2, ExternalLink, FolderOpen, Cloud, Edit, Save } from 'lucide-react';
+import { X, Phone, Calendar, User, FileText, Trash2, ExternalLink, FolderOpen, Edit, Save, Image as ImageIcon } from 'lucide-react';
 import { updateLead } from '../services/api';
-import WhatsAppModal from './WhatsAppModal'; // Importe o Modal Novo
+import WhatsAppModal from './WhatsAppModal';
 
 const LeadModal = ({ lead, onClose, onDelete, onUpdate }) => {
   if (!lead) return null;
 
   const [activeTab, setActiveTab] = useState('detalhes');
-  const [showWaModal, setShowWaModal] = useState(false); // Controle do Modal de Disparo
+  const [showWaModal, setShowWaModal] = useState(false); // Modal de Disparo
 
-  // ... (Estados do link da pasta individual - MANTIDOS IGUAIS) ...
+  // Estados Link Pasta
   const [pastaLink, setPastaLink] = useState(lead.link_pasta || '');
   const [isEditingLink, setIsEditingLink] = useState(!lead.link_pasta);
   const [loadingLink, setLoadingLink] = useState(false);
@@ -22,16 +22,18 @@ const LeadModal = ({ lead, onClose, onDelete, onUpdate }) => {
       lead.link_pasta = pastaLink;
       setIsEditingLink(false);
       if(onUpdate) onUpdate();
-      alert('Local dos arquivos salvo com sucesso!');
+      alert('Pasta salva!');
     } catch (error) { alert('Erro ao salvar.'); } finally { setLoadingLink(false); }
   };
 
-  // Parser do JSON
   let extraData = {};
   try { extraData = typeof lead.dados_extras === 'string' ? JSON.parse(lead.dados_extras) : lead.dados_extras || {}; } catch (e) {}
   const displayData = { ...extraData, ...lead };
   const ignoredKeys = ['id', 'dados_extras', 'criadoEm', 'updatedAt', 'status', 'nome', 'whatsapp', 'email', 'cpf', 'tipo_seguro', 'modelo_veiculo', 'link_pasta'];
   const isUrl = (s) => { try { return Boolean(new URL(s)); } catch(e){ return false; } }
+
+  // Função para limpar número do WhatsApp
+  const cleanPhone = (phone) => phone ? phone.replace(/\D/g, '') : '';
 
   return (
     <>
@@ -65,25 +67,32 @@ const LeadModal = ({ lead, onClose, onDelete, onUpdate }) => {
           
           {activeTab === 'detalhes' && (
             <div className="animate-fade-in">
-                {/* BOTÕES DE AÇÃO - ATUALIZADO */}
+                
+                {/* --- BOTÕES DE AÇÃO --- */}
                 <div className="flex gap-2 mb-6 flex-wrap sm:flex-nowrap">
                     {/* Botão WhatsApp Comum */}
-                    <a href={`https://wa.me/55${lead.whatsapp}`} target="_blank" rel="noreferrer" className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-bold shadow-md transition">
+                    <a 
+                      href={`https://wa.me/55${cleanPhone(lead.whatsapp)}`} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-bold shadow-md transition"
+                    >
                       <Phone size={20}/> WhatsApp
                     </a>
 
-                    {/* NOVO BOTÃO: Disparo Nuvem */}
+                    {/* Botão Disparo Promoções */}
                     <button 
                         onClick={() => setShowWaModal(true)} 
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-bold shadow-md transition"
+                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-bold shadow-md transition"
                     >
-                        <Cloud size={20}/> Disparo Nuvem
+                        <ImageIcon size={20}/> Promoções
                     </button>
 
                     <button onClick={() => { if(confirm('Excluir?')) onDelete(lead.id); }} className="px-4 border border-red-200 text-red-600 bg-white hover:bg-red-50 rounded-lg transition">
                       <Trash2 size={20}/>
                     </button>
                 </div>
+                {/* ---------------------- */}
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -107,7 +116,7 @@ const LeadModal = ({ lead, onClose, onDelete, onUpdate }) => {
                                 {isLink ? (
                                     <a href={value} target="_blank" rel="noreferrer" className="text-crm-600 hover:underline text-xs flex items-center gap-1 bg-crm-100 px-2 py-1 rounded-full"><ExternalLink size={12}/> Link</a>
                                 ) : (
-                                    <span className="text-slate-900 font-semibold text-sm">{value.toString()}</span>
+                                    <span className="text-slate-900 font-semibold text-sm break-words max-w-[50%] text-right">{value.toString()}</span>
                                 )}
                             </div>
                         )
@@ -152,7 +161,7 @@ const LeadModal = ({ lead, onClose, onDelete, onUpdate }) => {
       </div>
     </div>
     
-    {/* MODAL DE DISPARO (Renderizado condicionalmente) */}
+    {/* Modal de Disparo */}
     {showWaModal && <WhatsAppModal lead={lead} onClose={() => setShowWaModal(false)} />}
     </>
   );

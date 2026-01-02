@@ -1,97 +1,122 @@
-import React, { useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { Download } from 'lucide-react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+// ARQUIVO: frontend/src/components/Dashboard.jsx
+import React, { useState, useEffect } from 'react';
+import KanbanBoard from './KanbanBoard';
+import { Settings, Layout, Save } from 'lucide-react';
+import { getConfig, saveConfig } from '../services/api';
 
-const Dashboard = ({ leads }) => {
-  
-  // 1. Lógica de Cálculo (Diário vs Mensal)
-  const stats = useMemo(() => {
-    const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
-
-    const initial = {
-      NOVO: { total: 0, month: 0, day: 0 },
-      NEGOCIACAO: { total: 0, month: 0, day: 0 },
-      FECHADO: { total: 0, month: 0, day: 0 },
-      PERDIDO: { total: 0, month: 0, day: 0 },
-    };
-
-    return leads.reduce((acc, lead) => {
-      const status = lead.status || 'NOVO';
-      const leadDate = new Date(lead.criadoEm);
-      
-      if (!acc[status]) acc[status] = { total: 0, month: 0, day: 0 };
-      acc[status].total += 1; // Total Geral
-      
-      // Mensal
-      if (leadDate.getMonth() === currentMonth && leadDate.getFullYear() === currentYear) {
-        acc[status].month += 1;
-      }
-      // Diário
-      if (leadDate.toDateString() === today.toDateString()) {
-        acc[status].day += 1;
-      }
-      return acc;
-    }, initial);
-  }, [leads]);
-
-  // 2. Dados para o Gráfico
-  const chartData = [
-    { name: 'Novos', Status: stats.NOVO.total, Mensal: stats.NOVO.month, Diario: stats.NOVO.day },
-    { name: 'Negociação', Status: stats.NEGOCIACAO.total, Mensal: stats.NEGOCIACAO.month, Diario: stats.NEGOCIACAO.day },
-    { name: 'Fechados', Status: stats.FECHADO.total, Mensal: stats.FECHADO.month, Diario: stats.FECHADO.day },
-    { name: 'Perdidos', Status: stats.PERDIDO.total, Mensal: stats.PERDIDO.month, Diario: stats.PERDIDO.day },
-  ];
-
-  // 3. Gerar PDF
-  const generatePDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text('Relatório de Resultados - CRM Seguros', 14, 22);
-    doc.setFontSize(11);
-    doc.text(`Gerado em: ${new Date().toLocaleString()}`, 14, 30);
-
-    const tableData = [
-      ['Novos Leads', stats.NOVO.day, stats.NOVO.month, stats.NOVO.total],
-      ['Em Negociação', stats.NEGOCIACAO.day, stats.NEGOCIACAO.month, stats.NEGOCIACAO.total],
-      ['Vendas Fechadas', stats.FECHADO.day, stats.FECHADO.month, stats.FECHADO.total],
-      ['Perdidos', stats.PERDIDO.day, stats.PERDIDO.month, stats.PERDIDO.total],
-    ];
-
-    autoTable(doc, {
-      head: [['Categoria', 'Hoje', 'Este Mês', 'Total Geral']],
-      body: tableData,
-      startY: 40,
-      theme: 'grid',
-      headStyles: { fillColor: [249, 115, 22] },
-    });
-    doc.save('relatorio-resultados.pdf');
-  };
+const Dashboard = () => {
+  const [activeTab, setActiveTab] = useState('kanban'); // 'kanban' ou 'config'
 
   return (
-    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 animate-fade-in">
-      <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
-         <h3 className="text-sm font-bold text-slate-500 uppercase">Panorama de Vendas</h3>
-         <button onClick={generatePDF} className="flex items-center gap-2 px-3 py-1.5 bg-crm-50 text-crm-700 text-xs font-bold rounded hover:bg-crm-100 transition">
-            <Download size={14} /> Baixar Relatório
-         </button>
-      </div>
+    <div className="min-h-screen bg-slate-100 flex flex-col">
       
-      <div className="h-64 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-            <XAxis dataKey="name" tick={{fill: '#64748b', fontSize: 12}} axisLine={false} tickLine={false} />
-            <YAxis tick={{fill: '#64748b', fontSize: 12}} axisLine={false} tickLine={false} />
-            <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} cursor={{fill: '#f1f5f9'}} />
-            <Legend wrapperStyle={{ paddingTop: '10px' }} />
-            <Bar dataKey="Diario" name="Hoje" fill="#f97316" radius={[4, 4, 0, 0]} barSize={30} />
-            <Bar dataKey="Mensal" name="Mês Atual" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={30} />
-          </BarChart>
-        </ResponsiveContainer>
+      {/* Header / Navegação */}
+      <header className="bg-crm-900 text-white p-4 shadow-md">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            CRM Seguros 🚀
+          </h1>
+          
+          <div className="flex bg-crm-800 rounded-lg p-1 gap-1">
+            <button 
+              onClick={() => setActiveTab('kanban')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${activeTab === 'kanban' ? 'bg-white text-crm-900 font-bold shadow' : 'text-slate-300 hover:text-white'}`}
+            >
+              <Layout size={18} /> Leads (Kanban)
+            </button>
+            <button 
+              onClick={() => setActiveTab('config')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${activeTab === 'config' ? 'bg-white text-crm-900 font-bold shadow' : 'text-slate-300 hover:text-white'}`}
+            >
+              <Settings size={18} /> Configurações
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Conteúdo Principal */}
+      <main className="flex-1 p-6 overflow-hidden">
+        {activeTab === 'kanban' ? <KanbanBoard /> : <SettingsTab />}
+      </main>
+    </div>
+  );
+};
+
+// Componente Interno da Aba de Configurações
+const SettingsTab = () => {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [config, setConfig] = useState({ promo_folder_link: '', message_header: '' });
+
+  useEffect(() => {
+    getConfig().then(res => {
+      setConfig(res.data || {});
+      setLoading(false);
+    }).catch(err => console.error(err));
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await saveConfig(config);
+      alert('Configurações salvas com sucesso!');
+    } catch (error) {
+      alert('Erro ao salvar');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div className="text-center p-10">Carregando...</div>;
+
+  return (
+    <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8 animate-fade-in">
+      <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+        <Settings className="text-crm-600"/> Configurações de Disparo
+      </h2>
+
+      <div className="space-y-6">
+        {/* Config 1: Pasta de Promoções */}
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-2">
+            Link da Pasta de Promoções / Campanhas (Nuvem)
+          </label>
+          <input 
+            type="text" 
+            value={config.promo_folder_link || ''}
+            onChange={(e) => setConfig({...config, promo_folder_link: e.target.value})}
+            placeholder="Ex: https://drive.google.com/drive/folders/..."
+            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-crm-500 outline-none"
+          />
+          <p className="text-xs text-slate-500 mt-1">
+            Ao clicar em "Disparo Promoções", esta pasta será aberta para você pegar as imagens.
+          </p>
+        </div>
+
+        {/* Config 2: Cabeçalho Padrão */}
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-2">
+            Cabeçalho Padrão da Mensagem WhatsApp
+          </label>
+          <textarea 
+            rows="4"
+            value={config.message_header || ''}
+            onChange={(e) => setConfig({...config, message_header: e.target.value})}
+            placeholder="Ex: Olá! Aqui é da Seguros CG. Temos uma novidade para você..."
+            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-crm-500 outline-none"
+          />
+          <p className="text-xs text-slate-500 mt-1">
+            Este texto aparecerá automaticamente no topo de toda mensagem enviada via "Disparo Promoções".
+          </p>
+        </div>
+
+        <button 
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition hover:shadow-lg"
+        >
+          {saving ? 'Salvando...' : <><Save size={20}/> Salvar Alterações</>}
+        </button>
       </div>
     </div>
   );
