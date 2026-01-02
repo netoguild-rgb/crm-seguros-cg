@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Trash2 } from 'lucide-react';
+import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Globe, ExternalLink } from 'lucide-react';
 import { getLeads, updateLeadStatus, deleteLead } from './services/api';
 import KanbanBoard from './components/KanbanBoard';
 import LeadModal from './components/LeadModal';
 import NewLeadModal from './components/NewLeadModal';
 import WhatsAppModal from './components/WhatsAppModal';
-import Logo from './components/Logo'; // NOVO COMPONENTE
+import Logo from './components/Logo';
+import Dashboard from './components/Dashboard';
 
 function App() {
   const [leads, setLeads] = useState([]);
@@ -15,11 +16,8 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(false);
   
-  // Controle dos Modais
   const [isNewLeadModalOpen, setIsNewLeadModalOpen] = useState(false);
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
-  
-  // Estado para Seleção Múltipla (Para o disparo em massa)
   const [selectedLeadsIds, setSelectedLeadsIds] = useState([]);
 
   const fetchLeads = async () => {
@@ -35,7 +33,6 @@ function App() {
 
   const handleNewLead = () => setIsNewLeadModalOpen(true);
 
-  // Lógica de Seleção (Checkbox)
   const toggleSelectLead = (id) => {
     if (selectedLeadsIds.includes(id)) {
       setSelectedLeadsIds(selectedLeadsIds.filter(lid => lid !== id));
@@ -56,7 +53,6 @@ function App() {
     if (!result.destination) return;
     const { draggableId, destination } = result;
     const newStatus = destination.droppableId;
-    
     const oldLeads = [...leads];
     setLeads(prev => prev.map(l => l.id == draggableId ? { ...l, status: newStatus } : l));
 
@@ -74,11 +70,9 @@ function App() {
       
       {/* Sidebar */}
       <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-crm-900 text-white transition-all duration-300 flex flex-col shadow-2xl z-30`}>
-        {/* LOGO MODERNA */}
         <div className="h-20 flex items-center justify-center border-b border-white/10 relative">
            <Logo collapsed={!sidebarOpen} />
         </div>
-
         <nav className="flex-1 py-6 px-3 space-y-2">
           <button onClick={() => setView('kanban')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${view === 'kanban' ? 'bg-gradient-to-r from-crm-600 to-crm-500 text-white shadow-lg shadow-crm-900/50' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
             <LayoutDashboard size={20}/> {sidebarOpen && <span className="font-medium">Funil de Vendas</span>}
@@ -86,8 +80,6 @@ function App() {
           <button onClick={() => setView('list')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${view === 'list' ? 'bg-gradient-to-r from-crm-600 to-crm-500 text-white shadow-lg shadow-crm-900/50' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
             <Users size={20}/> {sidebarOpen && <span className="font-medium">Todos os Leads</span>}
           </button>
-          
-          {/* Menu de Atalho Rápido para Marketing */}
           {sidebarOpen && (
             <div className="mt-8 px-4">
                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Marketing</p>
@@ -101,6 +93,7 @@ function App() {
 
       {/* Main */}
       <main className="flex-1 flex flex-col min-w-0 bg-slate-50 relative">
+        {/* Header (Barra de Busca) */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-20">
           <div className="flex items-center gap-4">
              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500"><Menu size={20}/></button>
@@ -118,27 +111,62 @@ function App() {
           </div>
         </header>
 
-        {/* Barra de Ação em Massa (Aparece quando seleciona leads) */}
+        {/* Barra de Ação em Massa */}
         {selectedLeadsIds.length > 0 && view === 'list' && (
            <div className="bg-crm-100 border-b border-crm-200 p-3 px-6 flex items-center justify-between animate-fade-in">
               <span className="font-bold text-crm-800 text-sm">{selectedLeadsIds.length} leads selecionados</span>
               <div className="flex gap-2">
                  <button onClick={() => setSelectedLeadsIds([])} className="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-800">Cancelar</button>
-                 <button 
-                    onClick={() => setIsWhatsAppModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-1.5 bg-green-600 text-white rounded-lg text-xs font-bold shadow-sm hover:bg-green-700 transition"
-                 >
+                 <button onClick={() => setIsWhatsAppModalOpen(true)} className="flex items-center gap-2 px-4 py-1.5 bg-green-600 text-white rounded-lg text-xs font-bold shadow-sm hover:bg-green-700 transition">
                     <Send size={14}/> DISPARAR WHATSAPP
                  </button>
               </div>
            </div>
         )}
 
-        <div className="flex-1 overflow-hidden p-6 relative">
+        <div className="flex-1 overflow-y-auto p-6 relative">
             {view === 'kanban' ? (
-                <KanbanBoard leads={filtered} onDragEnd={onDragEnd} onCardClick={setSelectedLead} />
+                <>
+                  {/* TAREFA 1: BOTÃO AGENTE DIGITAL (AQUI!) */}
+                  <div className="mb-6 animate-fade-in">
+                    <a 
+                      href="https://netoguild-rgb.github.io/Agente-cg-corretora/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.01] transition duration-300 group cursor-pointer border border-slate-700"
+                    >
+                      <div className="flex items-center gap-4">
+                        {/* Ícone Online Pulsando */}
+                        <div className="relative flex items-center justify-center h-12 w-12 bg-white/10 rounded-full backdrop-blur-sm">
+                           <Globe size={24} className="text-blue-300"/>
+                           <span className="absolute top-0 right-0 flex h-3 w-3">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                           </span>
+                        </div>
+                        <div>
+                           <h2 className="text-lg font-bold">Agente Digital</h2>
+                           <p className="text-slate-400 text-xs uppercase tracking-wide font-semibold flex items-center gap-1">
+                             <span className="w-2 h-2 rounded-full bg-green-500"></span> Sistema Online
+                           </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-slate-300 group-hover:text-white transition font-medium text-sm bg-white/5 px-4 py-2 rounded-lg">
+                        Acessar Agora <ExternalLink size={16}/>
+                      </div>
+                    </a>
+                  </div>
+
+                  {/* TAREFA 2: GRÁFICOS (DASHBOARD) */}
+                  <Dashboard leads={leads} />
+                  
+                  {/* FUNIL (KANBAN) */}
+                  <div className="h-full pb-10">
+                    <KanbanBoard leads={filtered} onDragEnd={onDragEnd} onCardClick={setSelectedLead} />
+                  </div>
+                </>
             ) : (
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-fade-in h-full flex flex-col">
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-fade-in flex flex-col">
                     <div className="overflow-auto flex-1">
                       <table className="w-full text-left">
                           <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-xs font-bold tracking-wider sticky top-0 z-10 shadow-sm">
@@ -192,7 +220,6 @@ function App() {
         </div>
       </main>
 
-      {/* MODAIS */}
       {selectedLead && (
         <LeadModal lead={selectedLead} onClose={() => setSelectedLead(null)} 
             onDelete={async (id) => { await deleteLead(id); fetchLeads(); onClose(); }} />
@@ -205,7 +232,6 @@ function App() {
         />
       )}
 
-      {/* NOVO MODAL DE WHATSAPP */}
       {isWhatsAppModalOpen && (
         <WhatsAppModal 
           leads={leads.filter(l => selectedLeadsIds.includes(l.id))} 
