@@ -7,7 +7,8 @@ import NewLeadModal from './components/NewLeadModal';
 import WhatsAppModal from './components/WhatsAppModal';
 import Dashboard from './components/Dashboard';
 import ConfigPage from './components/ConfigPage';
-import jsPDF from 'jspdf'; // Necessário para o botão PDF da tabela
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable'; // Certifique-se de que está instalado: npm install jspdf-autotable
 
 function App() {
   const [leads, setLeads] = useState([]);
@@ -16,15 +17,15 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(false);
   
-  // TAREFA 2: Estados de Filtro
+  // Filtros
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterType, setFilterType] = useState('');
 
-  // TAREFA 4: Configuração Visual
+  // CONFIGURAÇÃO VISUAL (CORRIGIDO: Cor inicial definida para evitar branco)
   const [appConfig, setAppConfig] = useState({ 
     broker_name: 'CRM Seguros', 
-    primary_color: '#0f172a',
+    primary_color: '#0f172a', // Cor padrão (Slate 900)
     logo_url: '' 
   });
 
@@ -32,7 +33,6 @@ function App() {
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [selectedLeadsIds, setSelectedLeadsIds] = useState([]);
 
-  // Carregar dados iniciais
   useEffect(() => { 
     fetchLeads(); 
     fetchConfig();
@@ -41,7 +41,14 @@ function App() {
   const fetchConfig = async () => {
     try {
         const { data } = await getConfig();
-        if(data) setAppConfig(data);
+        if(data) {
+            // Garante que se algum campo vier vazio, use o padrão
+            setAppConfig({
+                broker_name: data.broker_name || 'CRM Seguros',
+                primary_color: data.primary_color || '#0f172a',
+                logo_url: data.logo_url || ''
+            });
+        }
     } catch(e) { console.error("Erro config", e); }
   };
 
@@ -54,7 +61,7 @@ function App() {
     finally { setLoading(false); }
   };
 
-  // Lógica de Filtro Avançada (Tarefa 2)
+  // Lógica de Filtro
   const safeLeads = leads || [];
   const filtered = safeLeads.filter(l => {
     const matchesSearch = (l.nome?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || (l.whatsapp?.includes(searchTerm));
@@ -63,14 +70,36 @@ function App() {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  // Função PDF Rápido (Tabela)
+  // Função PDF Rápido da Tabela (Mantendo layout profissional)
   const quickPdf = (lead, e) => {
     e.stopPropagation();
     const doc = new jsPDF();
-    doc.text(`Ficha: ${lead.nome}`, 10, 10);
-    doc.text(`Tel: ${lead.whatsapp}`, 10, 20);
-    doc.text(`Status: ${lead.status}`, 10, 30);
-    doc.save(`${lead.nome}.pdf`);
+    
+    // Cabeçalho colorido com a cor da marca
+    doc.setFillColor(appConfig.primary_color);
+    doc.rect(0, 0, 210, 24, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.text(appConfig.broker_name, 14, 15);
+    doc.setFontSize(10);
+    doc.text("Ficha Rápida", 180, 15);
+    
+    autoTable(doc, {
+      startY: 30,
+      head: [['Campo', 'Informação']],
+      body: [
+        ['Nome', lead.nome],
+        ['WhatsApp', lead.whatsapp],
+        ['Status', lead.status],
+        ['Tipo', lead.tipo_seguro],
+        ['Veículo', lead.modelo_veiculo || '-']
+      ],
+      theme: 'grid',
+      headStyles: { fillColor: appConfig.primary_color }
+    });
+    
+    doc.save(`${lead.nome}_ficha.pdf`);
   };
 
   const toggleSelectAll = () => {
@@ -93,30 +122,45 @@ function App() {
     catch (error) { setLeads(oldLeads); }
   };
 
-  // Estilo dinâmico para a Sidebar (Tarefa 4)
-  const sidebarStyle = { backgroundColor: appConfig.primary_color };
-
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden font-sans text-slate-900">
       
-      {/* Sidebar Personalizável */}
-      <aside style={sidebarStyle} className={`text-white transition-all duration-300 flex flex-col shadow-2xl z-30 ${sidebarOpen ? 'w-64' : 'w-20'}`}>
-        <div className="h-20 flex items-center justify-center border-b border-white/10 p-2">
-           {appConfig.logo_url ? (
-             <img src={appConfig.logo_url} alt="Logo" className="max-h-12 max-w-full object-contain" />
-           ) : (
-             <h1 className={`font-bold ${sidebarOpen ? 'text-xl' : 'text-xs'}`}>{sidebarOpen ? appConfig.broker_name : 'CRM'}</h1>
+      {/* Sidebar Personalizada */}
+      <aside 
+        style={{ backgroundColor: appConfig.primary_color }} 
+        className={`text-white transition-all duration-300 flex flex-col shadow-2xl z-30 ${sidebarOpen ? 'w-64' : 'w-20'}`}
+      >
+        {/* Header da Sidebar: Logo + Nome */}
+        <div className="flex flex-col items-center justify-center border-b border-white/10 p-4 transition-all min-h-[80px]">
+           {appConfig.logo_url && (
+             <img 
+               src={appConfig.logo_url} 
+               alt="Logo" 
+               className={`object-contain mb-2 transition-all ${sidebarOpen ? 'h-12' : 'h-8'}`} 
+             />
+           )}
+           
+           {/* Exibe o nome SEMPRE se a sidebar estiver aberta. Se fechada, exibe só se não tiver logo */}
+           {(sidebarOpen || !appConfig.logo_url) && (
+             <h1 className={`font-bold text-center leading-tight ${sidebarOpen ? 'text-base' : 'text-[10px]'}`}>
+                {appConfig.broker_name}
+             </h1>
            )}
         </div>
+
         <nav className="flex-1 py-6 px-3 space-y-2">
-          {['kanban', 'list', 'config'].map((v) => (
-             <button key={v} onClick={() => setView(v)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${view === v ? 'bg-white/20 shadow-lg' : 'hover:bg-white/5'}`}>
-                {v === 'kanban' && <LayoutDashboard size={20}/>}
-                {v === 'list' && <Users size={20}/>}
-                {v === 'config' && <Settings size={20}/>}
-                {sidebarOpen && <span className="capitalize">{v === 'list' ? 'Todos Leads' : v}</span>}
-             </button>
-          ))}
+           {/* Botão Funil de Vendas (Nome Corrigido) */}
+           <button onClick={() => setView('kanban')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${view === 'kanban' ? 'bg-white/20 shadow-lg font-bold' : 'hover:bg-white/5'}`}>
+              <LayoutDashboard size={20}/> {sidebarOpen && <span>Funil de Vendas</span>}
+           </button>
+           
+           <button onClick={() => setView('list')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${view === 'list' ? 'bg-white/20 shadow-lg font-bold' : 'hover:bg-white/5'}`}>
+              <Users size={20}/> {sidebarOpen && <span>Todos os Leads</span>}
+           </button>
+
+           <button onClick={() => setView('config')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${view === 'config' ? 'bg-white/20 shadow-lg font-bold' : 'hover:bg-white/5'}`}>
+              <Settings size={20}/> {sidebarOpen && <span>Configurações</span>}
+           </button>
         </nav>
       </aside>
 
@@ -124,7 +168,6 @@ function App() {
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-20">
           <div className="flex items-center gap-4">
              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-slate-100 rounded-lg"><Menu size={20}/></button>
-             {/* Busca */}
              {view !== 'config' && (
                 <div className="relative hidden md:block">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18}/>
@@ -139,18 +182,17 @@ function App() {
           </div>
         </header>
 
-        {/* Barra de Filtros (TAREFA 2) - Só aparece na Lista ou Kanban */}
         {view !== 'config' && (
             <div className="bg-white border-b border-slate-200 px-6 py-2 flex gap-4 items-center overflow-x-auto">
                 <Filter size={16} className="text-slate-400"/>
-                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="text-sm border-none bg-slate-50 rounded px-2 py-1 outline-none">
+                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="text-sm border-none bg-slate-50 rounded px-2 py-1 outline-none cursor-pointer hover:bg-slate-100">
                     <option value="">Todos Status</option>
                     <option value="NOVO">Novo</option>
                     <option value="NEGOCIACAO">Negociação</option>
                     <option value="FECHADO">Fechado</option>
                     <option value="PERDIDO">Perdido</option>
                 </select>
-                <select value={filterType} onChange={e => setFilterType(e.target.value)} className="text-sm border-none bg-slate-50 rounded px-2 py-1 outline-none">
+                <select value={filterType} onChange={e => setFilterType(e.target.value)} className="text-sm border-none bg-slate-50 rounded px-2 py-1 outline-none cursor-pointer hover:bg-slate-100">
                     <option value="">Todos Seguros</option>
                     <option value="Seguro Auto">Auto</option>
                     <option value="Seguro Vida">Vida</option>
@@ -160,13 +202,12 @@ function App() {
             </div>
         )}
 
-        {/* Barra de Ação em Massa (TAREFA 1) */}
         {selectedLeadsIds.length > 0 && view === 'list' && (
            <div className="bg-blue-50 border-b border-blue-200 p-3 px-6 flex items-center justify-between animate-fade-in">
               <span className="font-bold text-blue-800 text-sm">{selectedLeadsIds.length} selecionados</span>
               <div className="flex gap-2">
-                 <button onClick={() => setSelectedLeadsIds([])} className="px-3 py-1 text-xs font-bold text-slate-500">Cancelar</button>
-                 <button onClick={() => setIsWhatsAppModalOpen(true)} className="flex items-center gap-2 px-4 py-1 bg-green-600 text-white rounded-lg text-xs font-bold hover:bg-green-700">
+                 <button onClick={() => setSelectedLeadsIds([])} className="px-3 py-1 text-xs font-bold text-slate-500 hover:text-slate-700">Cancelar</button>
+                 <button onClick={() => setIsWhatsAppModalOpen(true)} className="flex items-center gap-2 px-4 py-1 bg-green-600 text-white rounded-lg text-xs font-bold hover:bg-green-700 shadow-sm transition">
                     <Send size={14}/> DISPARAR EM MASSA
                  </button>
               </div>
@@ -179,9 +220,14 @@ function App() {
             {view === 'kanban' && (
                 <>
                   <div className="mb-6 animate-fade-in">
-                    <div style={{ background: `linear-gradient(to right, ${appConfig.primary_color}, #334155)` }} className="p-4 text-white rounded-xl shadow-lg flex justify-between items-center">
-                        <div><h2 className="text-lg font-bold">Agente Digital</h2><p className="text-xs opacity-80">Sistema Online</p></div>
-                        <a href="https://crm-seguros.onrender.com" target="_blank" className="bg-white/20 px-4 py-2 rounded text-sm font-bold flex gap-2">Acessar <ExternalLink size={16}/></a>
+                    <div style={{ background: `linear-gradient(to right, ${appConfig.primary_color}, #334155)` }} className="p-4 text-white rounded-xl shadow-lg flex justify-between items-center border border-white/10">
+                        <div>
+                            <h2 className="text-lg font-bold">Agente Digital</h2>
+                            <p className="text-xs opacity-80">Sistema Online</p>
+                        </div>
+                        <a href="https://crm-seguros.onrender.com" target="_blank" rel="noreferrer" className="bg-white/20 hover:bg-white/30 transition px-4 py-2 rounded text-sm font-bold flex gap-2">
+                            Acessar <ExternalLink size={16}/>
+                        </a>
                     </div>
                   </div>
                   <Dashboard leads={safeLeads} />
@@ -193,9 +239,9 @@ function App() {
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div className="overflow-auto">
                       <table className="w-full text-left">
-                          <thead className="bg-slate-50 text-slate-500 uppercase text-xs font-bold">
+                          <thead className="bg-slate-50 text-slate-500 uppercase text-xs font-bold border-b border-slate-200">
                               <tr>
-                                <th className="p-4 w-10"><input type="checkbox" onChange={toggleSelectAll} checked={selectedLeadsIds.length === filtered.length && filtered.length > 0}/></th>
+                                <th className="p-4 w-10"><input type="checkbox" onChange={toggleSelectAll} checked={selectedLeadsIds.length === filtered.length && filtered.length > 0} className="rounded border-slate-300"/></th>
                                 <th className="p-4">Nome</th>
                                 <th className="p-4">WhatsApp</th>
                                 <th className="p-4">Tipo</th>
@@ -205,17 +251,23 @@ function App() {
                           </thead>
                           <tbody className="divide-y divide-slate-100 text-sm">
                               {filtered.map(lead => (
-                                  <tr key={lead.id} onClick={() => setSelectedLead(lead)} className="hover:bg-slate-50 cursor-pointer">
+                                  <tr key={lead.id} onClick={() => setSelectedLead(lead)} className="hover:bg-slate-50 cursor-pointer transition">
                                       <td className="p-4" onClick={e => e.stopPropagation()}>
-                                        <input type="checkbox" checked={selectedLeadsIds.includes(lead.id)} onChange={() => toggleSelectLead(lead.id)}/>
+                                        <input type="checkbox" checked={selectedLeadsIds.includes(lead.id)} onChange={() => toggleSelectLead(lead.id)} className="rounded border-slate-300"/>
                                       </td>
                                       <td className="p-4 font-bold text-slate-700">{lead.nome}</td>
                                       <td className="p-4 font-mono text-slate-500">{lead.whatsapp}</td>
-                                      <td className="p-4"><span className="bg-slate-100 px-2 py-1 rounded text-xs">{lead.tipo_seguro}</span></td>
-                                      <td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{lead.status}</span></td>
+                                      <td className="p-4"><span className="bg-slate-100 px-2 py-1 rounded text-xs border border-slate-200">{lead.tipo_seguro}</span></td>
+                                      <td className="p-4">
+                                          <span className={`px-2 py-1 rounded-full text-xs font-bold border ${
+                                              lead.status==='FECHADO'?'bg-green-100 text-green-700 border-green-200':
+                                              lead.status==='PERDIDO'?'bg-red-100 text-red-700 border-red-200':
+                                              'bg-blue-100 text-blue-700 border-blue-200'}`}>
+                                              {lead.status}
+                                          </span>
+                                      </td>
                                       <td className="p-4 text-right">
-                                        {/* TAREFA 3: Botão PDF na Tabela */}
-                                        <button onClick={(e) => quickPdf(lead, e)} className="text-slate-400 hover:text-red-600" title="Baixar PDF"><FileDown size={18}/></button>
+                                        <button onClick={(e) => quickPdf(lead, e)} className="text-slate-400 hover:text-red-600 transition" title="Baixar PDF"><FileDown size={18}/></button>
                                       </td>
                                   </tr>
                               ))}
@@ -229,7 +281,6 @@ function App() {
 
       {selectedLead && <LeadModal lead={selectedLead} onClose={() => setSelectedLead(null)} onDelete={async (id) => { await deleteLead(id); fetchLeads(); onClose(); }} onUpdate={fetchLeads} />}
       {isNewLeadModalOpen && <NewLeadModal onClose={() => setIsNewLeadModalOpen(false)} onSuccess={fetchLeads} />}
-      {/* Modal agora recebe lista filtrada para envio em massa */}
       {isWhatsAppModalOpen && <WhatsAppModal leads={leads.filter(l => selectedLeadsIds.includes(l.id))} onClose={() => setIsWhatsAppModalOpen(false)} />}
     </div>
   );
