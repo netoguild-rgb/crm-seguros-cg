@@ -1,24 +1,20 @@
+// ARQUIVO: frontend/src/components/NewLeadModal.jsx
 import React, { useState } from 'react';
-import { X, Save, User, Car, Shield, FileText } from 'lucide-react';
+import { X, Save, User, Car, Shield, FileText, FolderPlus } from 'lucide-react';
 import { createLead } from '../services/api';
 
 const NewLeadModal = ({ onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('pessoal'); // pessoal, veiculo, seguro, extra
+  const [activeTab, setActiveTab] = useState('pessoal'); 
 
-  // Estado inicial com TODOS os campos solicitados
   const [formData, setFormData] = useState({
     // Pessoais Basicos
-    nome: '', // Corresponde a Nome_completo
+    nome: '', 
     whatsapp: '',
     email: '',
     cpf: '',
     profissao: '',
     
-    // Condutor
-    condutor_principal: '',
-    idade_do_condutor: '',
-
     // Veículo
     modelo_veiculo: '',
     placa: '',
@@ -26,8 +22,8 @@ const NewLeadModal = ({ onClose, onSuccess }) => {
     renavan: '',
     uso_veiculo: '',
     
-    // Seguro Geral / Coberturas
-    tipo_seguro: 'Seguro Auto', // Valor padrão
+    // Seguro
+    tipo_seguro: 'Seguro Auto', 
     cobertura_terceiros: '',
     cobertura_roubo: '',
     carro_reserva: '',
@@ -40,7 +36,8 @@ const NewLeadModal = ({ onClose, onSuccess }) => {
     preferencia_rede: '',
     idades_saude: '',
 
-    // Obs
+    // Arquivos e Obs
+    link_pasta: '', // <--- Novo Campo
     obs_final: ''
   });
 
@@ -52,9 +49,6 @@ const NewLeadModal = ({ onClose, onSuccess }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Envia tudo para o backend. 
-      // O backend vai salvar nome, whats, tipo_seguro nas colunas certas 
-      // e o resto (renavan, profissao, etc) vai para o JSON dados_extras.
       await createLead({ ...formData, status: 'NOVO' });
       onSuccess();
       onClose();
@@ -66,7 +60,6 @@ const NewLeadModal = ({ onClose, onSuccess }) => {
     }
   };
 
-  // Componente auxiliar de Input
   const Input = ({ label, name, type = "text", placeholder, required = false }) => (
     <div className="flex flex-col gap-1">
       <label className="text-xs font-bold text-slate-500 uppercase">
@@ -96,13 +89,13 @@ const NewLeadModal = ({ onClose, onSuccess }) => {
           <button onClick={onClose} className="hover:bg-white/10 p-2 rounded-full transition"><X size={20}/></button>
         </div>
 
-        {/* Tabs de Navegação */}
+        {/* Tabs */}
         <div className="flex border-b border-slate-200 bg-slate-50">
           {[
             { id: 'pessoal', label: 'Dados Pessoais', icon: User },
             { id: 'veiculo', label: 'Veículo', icon: Car },
             { id: 'seguro', label: 'Coberturas', icon: Shield },
-            { id: 'extra', label: 'Vida/Saúde & Obs', icon: FileText },
+            { id: 'extra', label: 'Extra & Arquivos', icon: FileText },
           ].map(tab => (
             <button
               key={tab.id}
@@ -125,26 +118,22 @@ const NewLeadModal = ({ onClose, onSuccess }) => {
               <Input label="E-mail" name="email" type="email" />
               <Input label="CPF" name="cpf" />
               <Input label="Profissão" name="profissao" />
-              <Input label="Idade Condutor" name="idade_do_condutor" />
-              <div className="sm:col-span-2">
-                <Input label="Nome do Condutor Principal" name="condutor_principal" placeholder="Se for diferente do segurado" />
-              </div>
             </div>
           )}
 
           {activeTab === 'veiculo' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
-              <Input label="Modelo do Veículo" name="modelo_veiculo" placeholder="Ex: Corolla XEi 2.0" />
+              <Input label="Modelo do Veículo" name="modelo_veiculo" />
               <Input label="Placa" name="placa" />
-              <Input label="Ano do Veículo" name="ano_do_veiculo" placeholder="Ex: 2020/2021" />
+              <Input label="Ano do Veículo" name="ano_do_veiculo" />
               <Input label="Renavam" name="renavan" />
               <div className="sm:col-span-2">
                  <label className="text-xs font-bold text-slate-500 uppercase">Uso do Veículo</label>
                  <select name="uso_veiculo" value={formData.uso_veiculo} onChange={handleChange} className="w-full p-2 border border-slate-300 rounded mt-1 text-sm bg-white">
                     <option value="">Selecione...</option>
-                    <option value="Passeio">Passeio / Ida e volta ao trabalho</option>
-                    <option value="Aplicativo">Motorista de Aplicativo (Uber/99)</option>
-                    <option value="Comercial">Uso Comercial / Visitas</option>
+                    <option value="Passeio">Passeio</option>
+                    <option value="Aplicativo">Aplicativo (Uber)</option>
+                    <option value="Comercial">Comercial</option>
                  </select>
               </div>
             </div>
@@ -152,7 +141,7 @@ const NewLeadModal = ({ onClose, onSuccess }) => {
 
           {activeTab === 'seguro' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
-              <div className="sm:col-span-2">
+               <div className="sm:col-span-2">
                  <label className="text-xs font-bold text-slate-500 uppercase">Tipo de Seguro</label>
                  <select name="tipo_seguro" value={formData.tipo_seguro} onChange={handleChange} className="w-full p-2 border border-slate-300 rounded mt-1 font-bold text-crm-900 bg-white">
                     <option value="Seguro Auto">Seguro Auto</option>
@@ -162,36 +151,29 @@ const NewLeadModal = ({ onClose, onSuccess }) => {
                     <option value="Residencial">Residencial</option>
                  </select>
               </div>
-              <Input label="Cobertura Terceiros (R$)" name="cobertura_terceiros" placeholder="Ex: 100.000" />
-              <Input label="Cobertura Roubo" name="cobertura_roubo" placeholder="Ex: 100% FIPE" />
-              <Input label="Carro Reserva" name="carro_reserva" placeholder="Ex: 7 dias, 15 dias..." />
-              <Input label="KM Guincho" name="km_guincho" placeholder="Ex: 400km, Ilimitado..." />
+              <Input label="Cobertura Terceiros (R$)" name="cobertura_terceiros" />
+              <Input label="Cobertura Roubo" name="cobertura_roubo" />
             </div>
           )}
 
           {activeTab === 'extra' && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg border border-slate-100">
-                <h3 className="sm:col-span-2 font-bold text-slate-700 border-b pb-2 mb-2">Vida & Saúde</h3>
-                <Input label="Plano de Saúde Atual" name="plano_saude" />
-                <Input label="Preferencia de Rede" name="preferencia_rede" />
-                <Input label="Idades (p/ Saúde)" name="idades_saude" placeholder="Ex: 30, 28, 5" />
-                <Input label="Capital Vida (R$)" name="capital_vida" />
-                <div className="sm:col-span-2">
-                   <Input label="Motivo do Seguro de Vida" name="motivo_vida" />
-                </div>
+            <div className="space-y-6 animate-fade-in">
+              
+              {/* CAMPO NOVO: PASTA DE ARQUIVOS */}
+              <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                <h4 className="font-bold text-blue-800 text-sm mb-3 flex items-center gap-2">
+                    <FolderPlus size={18}/> Organização de Arquivos
+                </h4>
+                <Input 
+                    label="Link da Pasta (Drive, Dropbox ou Local)" 
+                    name="link_pasta" 
+                    placeholder="Cole aqui o link ou caminho da pasta..."
+                />
+                <p className="text-[10px] text-blue-400 mt-1">Opcional: Você pode adicionar isso depois.</p>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Observações Finais</label>
-                <textarea 
-                  name="obs_final" 
-                  value={formData.obs_final} 
-                  onChange={handleChange}
-                  rows="3"
-                  className="w-full p-2 border border-slate-300 rounded mt-1 text-sm outline-none focus:ring-2 focus:ring-crm-500"
-                  placeholder="Cole aqui qualquer outra informação relevante..."
-                ></textarea>
+              <div className="border-t border-slate-100 pt-4">
+                <Input label="Observações Finais" name="obs_final" placeholder="Detalhes adicionais..." />
               </div>
             </div>
           )}
@@ -200,7 +182,7 @@ const NewLeadModal = ({ onClose, onSuccess }) => {
         {/* Footer */}
         <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
           <button onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg transition font-medium">Cancelar</button>
-          <button onClick={handleSubmit} disabled={loading} className="px-6 py-2 bg-crm-600 hover:bg-crm-700 text-white rounded-lg shadow-lg flex items-center gap-2 font-bold transition transform hover:-translate-y-0.5">
+          <button onClick={handleSubmit} disabled={loading} className="px-6 py-2 bg-crm-600 hover:bg-crm-700 text-white rounded-lg shadow-lg flex items-center gap-2 font-bold transition">
             {loading ? 'Salvando...' : <><Save size={18}/> Salvar Lead</>}
           </button>
         </div>

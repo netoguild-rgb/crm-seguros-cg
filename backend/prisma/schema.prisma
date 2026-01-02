@@ -1,4 +1,4 @@
-// ARQUIVO: prisma/schema.prisma
+// ARQUIVO: backend/prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
@@ -13,7 +13,7 @@ model Lead {
   id        Int      @id @default(autoincrement())
   criadoEm  DateTime @default(now())
   
-  // Campos Principais (Mapeados)
+  // Campos Principais
   nome                String
   whatsapp            String
   email               String?
@@ -26,7 +26,10 @@ model Lead {
   modelo_veiculo      String?
   ano_veiculo         String?
   uso_veiculo         String?
-  
-  // O SEGREDO: Esse campo salva TUDO o que vier do Typebot
-  dados_extras        Json?    
+
+  // NOVO CAMPO: Link para pasta externa (Drive, Dropbox, Rede Local)
+  link_pasta          String?
+
+  // Campos Extras (JSON)
+  dados_extras        Json?
 }

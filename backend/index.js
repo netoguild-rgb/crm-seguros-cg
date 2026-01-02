@@ -8,23 +8,17 @@ const app = express();
 const prisma = new PrismaClient();
 
 app.use(express.json());
-
-// CONFIGURAÇÃO CORS ATUALIZADA
-// Permite que qualquer origem (seu frontend React) acesse a API
 app.use(cors()); 
 
 // Rota de Teste
 app.get('/', (req, res) => res.send('CRM Seguros API - Rodando 🚀'));
 
-// ... (MANTENHA TODO O RESTANTE DO CÓDIGO IGUAL ABAIXO) ...
-// As rotas POST /leads, GET /leads, PATCH e DELETE continuam iguais - Rodando 🚀'));
-// 1. RECEBER LEAD (Salva TUDO)
+// 1. CRIAR LEAD
 app.post('/leads', async (req, res) => {
   try {
     const dados = req.body;
     console.log("Recebendo:", dados.nome || "Lead sem nome");
 
-    // Tentativa de limpar o whatsapp (deixar só numeros)
     let whatsLimpo = "00000000000";
     if (dados.whatsapp || dados.telefone) {
         whatsLimpo = (dados.whatsapp || dados.telefone).toString().replace(/\D/g, '');
@@ -32,34 +26,32 @@ app.post('/leads', async (req, res) => {
 
     const lead = await prisma.lead.create({
       data: {
-        // Mapeamento básico (para facilitar filtros depois)
         nome:           dados.nome || dados.Nome_completo || dados.name || "Sem Nome",
         whatsapp:       whatsLimpo,
         email:          dados.email || dados.mail,
         cpf:            dados.cpf,
         status:         "NOVO",
         
-        // Específicos mapeados
         tipo_seguro:    dados.tipo_seguro,
         placa:          dados.placa,
         modelo_veiculo: dados.modelo_veiculo,
         ano_veiculo:    dados.ano_do_veiculo || dados.ano_veiculo,
         
-        // A MÁGICA: Salva o objeto inteiro do Typebot aqui
-        // Assim você nunca perde uma variável nova
+        // RECEBE O LINK DA PASTA
+        link_pasta:     dados.link_pasta, 
+
         dados_extras:   dados 
       }
     });
 
     res.json({ sucesso: true, id: lead.id });
-
   } catch (error) {
     console.error("Erro no Backend:", error);
     res.status(500).json({ erro: "Falha ao salvar", detalhe: error.message });
   }
 });
 
-// 2. LISTAR LEADS (Envia tudo pro Frontend)
+// 2. LISTAR LEADS
 app.get('/leads', async (req, res) => {
   try {
     const leads = await prisma.lead.findMany({
@@ -71,17 +63,25 @@ app.get('/leads', async (req, res) => {
   }
 });
 
-// 3. ATUALIZAR STATUS
+// 3. ATUALIZAR LEAD (Status ou Link)
 app.patch('/leads/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    // Pega os campos possíveis de atualização
+    const { status, link_pasta } = req.body;
+    
+    // Monta objeto dinâmico (só atualiza o que foi enviado)
+    const dataToUpdate = {};
+    if (status !== undefined) dataToUpdate.status = status;
+    if (link_pasta !== undefined) dataToUpdate.link_pasta = link_pasta;
+
     const lead = await prisma.lead.update({
       where: { id: Number(id) },
-      data: { status }
+      data: dataToUpdate
     });
     res.json(lead);
   } catch (error) {
+    console.error(error);
     res.status(400).json({ erro: "Erro ao atualizar" });
   }
 });
