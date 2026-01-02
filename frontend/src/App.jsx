@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown, Shield } from 'lucide-react';
+import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown } from 'lucide-react';
 import { getLeads, updateLeadStatus, deleteLead, getConfig } from './services/api';
 import KanbanBoard from './components/KanbanBoard';
 import LeadModal from './components/LeadModal';
@@ -22,11 +22,14 @@ function App() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterType, setFilterType] = useState('');
 
-  // Configuração Visual
+  // URL da nova logo padrão
+  const DEFAULT_LOGO = 'https://i.imgur.com/H6804rI.png';
+
+  // Configuração Visual (Inicia com a nova logo definida como padrão)
   const [appConfig, setAppConfig] = useState({ 
     broker_name: 'CRM Seguros', 
     primary_color: '#0f172a', 
-    logo_url: '' 
+    logo_url: DEFAULT_LOGO // <--- ALTERAÇÃO AQUI: Define a imagem como padrão inicial
   });
 
   const [isNewLeadModalOpen, setIsNewLeadModalOpen] = useState(false);
@@ -42,10 +45,12 @@ function App() {
     try {
         const { data } = await getConfig();
         if(data) {
+            // Se vier dados do banco, usa. Se não, usa os padrões (incluindo a nova logo)
             setAppConfig({
                 broker_name: data.broker_name || 'CRM Seguros',
                 primary_color: data.primary_color || '#0f172a',
-                logo_url: data.logo_url || ''
+                // <--- ALTERAÇÃO AQUI: Se não tiver logo no banco, usa a padrão
+                logo_url: data.logo_url || DEFAULT_LOGO 
             });
         }
     } catch(e) { console.error("Erro config", e); }
@@ -68,9 +73,12 @@ function App() {
     return matchesSearch && matchesStatus && matchesType;
   });
 
+  // Função PDF Rápido (Tabela)
   const quickPdf = (lead, e) => {
     e.stopPropagation();
     const doc = new jsPDF();
+    
+    // Cabeçalho com a cor da marca
     doc.setFillColor(appConfig.primary_color);
     doc.rect(0, 0, 210, 24, 'F');
     doc.setTextColor(255, 255, 255);
@@ -119,45 +127,26 @@ function App() {
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden font-sans text-slate-900">
       
-      {/* Sidebar Personalizada */}
+      {/* Sidebar - Personalizável */}
       <aside 
         style={{ backgroundColor: appConfig.primary_color }} 
         className={`text-white transition-all duration-300 flex flex-col shadow-2xl z-30 ${sidebarOpen ? 'w-64' : 'w-20'}`}
       >
-        {/* HEADER DA SIDEBAR: LOGOS */}
-        <div className="flex flex-col items-center justify-center border-b border-white/10 p-4 transition-all min-h-[140px] space-y-4">
-           
-           {/* 1. LOGO FIXA DO CRM (ESCUDO) */}
-           <div className="flex flex-col items-center animate-fade-in">
-              <div className="bg-white/10 p-2 rounded-full mb-1 border border-white/20">
-                <Shield size={sidebarOpen ? 24 : 20} className="text-white fill-white/20" />
-              </div>
-              {sidebarOpen && (
-                <span className="text-[10px] font-extrabold uppercase tracking-widest opacity-80">
-                    CRM Seguros
-                </span>
-              )}
-           </div>
-
-           {/* Divisória sutil */}
-           {sidebarOpen && <div className="w-1/2 border-t border-white/10"></div>}
-
-           {/* 2. LOGO CONFIGURÁVEL DO CLIENTE */}
-           <div className="flex flex-col items-center">
-                {appConfig.logo_url && (
-                    <img 
-                    src={appConfig.logo_url} 
-                    alt="Logo Corretora" 
-                    className={`object-contain mb-1 transition-all ${sidebarOpen ? 'h-10' : 'h-6'}`} 
-                    />
-                )}
-                
-                {(sidebarOpen || !appConfig.logo_url) && (
-                    <h1 className={`font-bold text-center leading-tight text-yellow-400 ${sidebarOpen ? 'text-sm' : 'text-[9px]'}`}>
-                        {appConfig.broker_name}
-                    </h1>
-                )}
-           </div>
+        {/* Header da Sidebar: Logo ou Nome da Corretora */}
+        <div className="flex flex-col items-center justify-center border-b border-white/10 p-4 transition-all min-h-[80px]">
+           {/* Como agora sempre haverá uma URL de logo (a padrão ou a do banco), o texto nunca aparecerá */}
+           {appConfig.logo_url ? (
+             <img 
+               src={appConfig.logo_url} 
+               alt="Logo" 
+               className={`object-contain mb-2 transition-all ${sidebarOpen ? 'h-14' : 'h-8'}`} 
+             />
+           ) : (
+             /* Este bloco agora só aparece se a pessoa apagar a logo nas configurações */
+             <h1 className={`font-bold text-center leading-tight ${sidebarOpen ? 'text-lg' : 'text-[10px]'}`}>
+                {appConfig.broker_name}
+             </h1>
+           )}
         </div>
 
         <nav className="flex-1 py-6 px-3 space-y-2">
@@ -244,7 +233,6 @@ function App() {
                             </div>
                         </div>
                         
-                        {/* ATUALIZADO: LINK DO AGENTE DIGITAL */}
                         <a 
                             href="https://netoguild-rgb.github.io/Agente-cg-corretora/" 
                             target="_blank" 
