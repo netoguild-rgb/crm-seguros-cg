@@ -1,14 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown } from 'lucide-react';
 import { getLeads, updateLeadStatus, deleteLead, getConfig } from './services/api';
+
+// --- IMPORTS DE COMPONENTES ---
 import KanbanBoard from './components/KanbanBoard';
 import LeadModal from './components/LeadModal';
 import NewLeadModal from './components/NewLeadModal';
 import WhatsAppModal from './components/WhatsAppModal';
 import Dashboard from './components/Dashboard';
 import ConfigPage from './components/ConfigPage';
+// 1. IMPORT DO COMPONENTE LOGO DO CRM
+import Logo from './components/Logo'; 
+
+// --- LIBs EXTRAS ---
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+
+// 2. IMPORT DA IMAGEM LOCAL (Certifique-se que o arquivo existe em src/assets/)
+// Se não tiver a imagem ainda, comente esta linha e use a URL string abaixo
+import imgLogoPadrao from './assets/logo.png'; 
 
 function App() {
   const [leads, setLeads] = useState([]);
@@ -22,14 +32,15 @@ function App() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterType, setFilterType] = useState('');
 
-  // URL da nova logo padrão
-  const DEFAULT_LOGO = 'https://i.imgur.com/H6804rI.png';
+  // 3. DEFININDO A IMAGEM IMPORTADA COMO PADRÃO
+  const DEFAULT_LOGO = imgLogoPadrao; 
+  // Caso prefira URL externa, use: const DEFAULT_LOGO = 'https://i.imgur.com/H6804rI.png';
 
-  // Configuração Visual (Inicia com a nova logo definida como padrão)
+  // Configuração Visual
   const [appConfig, setAppConfig] = useState({ 
     broker_name: 'CRM Seguros', 
     primary_color: '#0f172a', 
-    logo_url: DEFAULT_LOGO // <--- ALTERAÇÃO AQUI: Define a imagem como padrão inicial
+    logo_url: DEFAULT_LOGO 
   });
 
   const [isNewLeadModalOpen, setIsNewLeadModalOpen] = useState(false);
@@ -45,11 +56,9 @@ function App() {
     try {
         const { data } = await getConfig();
         if(data) {
-            // Se vier dados do banco, usa. Se não, usa os padrões (incluindo a nova logo)
             setAppConfig({
                 broker_name: data.broker_name || 'CRM Seguros',
                 primary_color: data.primary_color || '#0f172a',
-                // <--- ALTERAÇÃO AQUI: Se não tiver logo no banco, usa a padrão
                 logo_url: data.logo_url || DEFAULT_LOGO 
             });
         }
@@ -73,12 +82,11 @@ function App() {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  // Função PDF Rápido (Tabela)
+  // Função PDF Rápido
   const quickPdf = (lead, e) => {
     e.stopPropagation();
     const doc = new jsPDF();
     
-    // Cabeçalho com a cor da marca
     doc.setFillColor(appConfig.primary_color);
     doc.rect(0, 0, 210, 24, 'F');
     doc.setTextColor(255, 255, 255);
@@ -132,24 +140,31 @@ function App() {
         style={{ backgroundColor: appConfig.primary_color }} 
         className={`text-white transition-all duration-300 flex flex-col shadow-2xl z-30 ${sidebarOpen ? 'w-64' : 'w-20'}`}
       >
-        {/* Header da Sidebar: Logo ou Nome da Corretora */}
-        <div className="flex flex-col items-center justify-center border-b border-white/10 p-4 transition-all min-h-[80px]">
-           {/* Como agora sempre haverá uma URL de logo (a padrão ou a do banco), o texto nunca aparecerá */}
+        {/* A. LOGO DO SISTEMA CRM (Fixo no Topo) */}
+        <div className="border-b border-white/10 pb-2 bg-black/10">
+            {/* O prop collapsed inverte a lógica do sidebarOpen (open=true -> collapsed=false) */}
+            <Logo collapsed={!sidebarOpen} />
+        </div>
+
+        {/* B. LOGO DO CLIENTE (Configurável) */}
+        <div className={`flex flex-col items-center justify-center border-b border-white/10 p-4 transition-all ${sidebarOpen ? 'min-h-[100px]' : 'min-h-[60px]'}`}>
            {appConfig.logo_url ? (
              <img 
                src={appConfig.logo_url} 
-               alt="Logo" 
-               className={`object-contain mb-2 transition-all ${sidebarOpen ? 'h-14' : 'h-8'}`} 
+               alt="Logo Corretora" 
+               className={`object-contain transition-all duration-300 ${sidebarOpen ? 'h-16 max-w-[80%]' : 'h-8 w-8 rounded-full bg-white/10 p-1'}`} 
              />
            ) : (
-             /* Este bloco agora só aparece se a pessoa apagar a logo nas configurações */
-             <h1 className={`font-bold text-center leading-tight ${sidebarOpen ? 'text-lg' : 'text-[10px]'}`}>
-                {appConfig.broker_name}
-             </h1>
+             !sidebarOpen ? null : (
+                 <h1 className="font-bold text-center leading-tight text-lg animate-fade-in">
+                    {appConfig.broker_name}
+                 </h1>
+             )
            )}
         </div>
 
-        <nav className="flex-1 py-6 px-3 space-y-2">
+        {/* C. MENU DE NAVEGAÇÃO */}
+        <nav className="flex-1 py-6 px-3 space-y-2 overflow-y-auto">
            <button onClick={() => setView('kanban')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${view === 'kanban' ? 'bg-white/20 shadow-lg font-bold' : 'hover:bg-white/5'}`}>
               <LayoutDashboard size={20}/> {sidebarOpen && <span>Funil de Vendas</span>}
            </button>
@@ -164,6 +179,7 @@ function App() {
         </nav>
       </aside>
 
+      {/* --- RESTO DO LAYOUT (MAIN) --- */}
       <main className="flex-1 flex flex-col min-w-0 bg-slate-50 relative">
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-20">
           <div className="flex items-center gap-4">
