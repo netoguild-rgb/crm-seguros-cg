@@ -150,7 +150,7 @@ function App() {
         <div className="flex flex-col h-full z-10 relative">
             
             {/* Logo Area - CORRIGIDO: Container com efeito vidro e padding zero para maximizar logo */}
-            <div className="h-20 flex items-center justify-center border-b border-white/10 shrink-0 bg-gradient-to-b from-white/20 to-white/5 shadow-[inset_0_-4px_6px_rgba(0,0,0,0.1)] relative overflow-hidden">
+            <div className="h-32 flex items-center justify-center border-b border-white/10 shrink-0 bg-gradient-to-b from-white/20 to-white/5 shadow-[inset_0_-4px_6px_rgba(0,0,0,0.1)] relative overflow-hidden">
                  <Logo collapsed={!sidebarOpen} />
             </div>
 
