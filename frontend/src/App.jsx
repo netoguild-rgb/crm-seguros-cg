@@ -149,8 +149,8 @@ function App() {
       >
         <div className="flex flex-col h-full z-10 relative">
             
-            {/* Logo Area - CORRIGIDO: Sem bg-black, altura fixa, borda suave */}
-            <div className="h-16 flex items-center justify-center border-b border-white/10 shrink-0 mx-2">
+            {/* Logo Area - CORRIGIDO: Sem margens, aproveitando 100% do espaço */}
+            <div className="h-16 flex items-center justify-center border-b border-white/10 shrink-0 bg-white/5">
                  <Logo collapsed={!sidebarOpen} />
             </div>
 
