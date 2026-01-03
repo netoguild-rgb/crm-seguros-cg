@@ -138,7 +138,7 @@ function App() {
         w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group relative overflow-hidden
         ${active 
           ? 'bg-white/20 text-white shadow-lg border border-white/20 backdrop-blur-sm' 
-          : 'text-white/70 hover:bg-white/10 hover:text-white hover:translate-x-1'
+          : 'text-slate-400 hover:bg-white/10 hover:text-white hover:translate-x-1'
         }
       `}
     >
