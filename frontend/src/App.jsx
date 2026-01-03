@@ -149,8 +149,8 @@ function App() {
       >
         <div className="flex flex-col h-full z-10 relative">
             
-            {/* Logo Area - CORRIGIDO: Sem margens, aproveitando 100% do espaço */}
-            <div className="h-16 flex items-center justify-center border-b border-white/10 shrink-0 bg-white/5">
+            {/* Logo Area - CORRIGIDO: Efeito de fundo "Vidro" e Sombra Interna para destaque */}
+            <div className="h-16 flex items-center justify-center border-b border-white/10 shrink-0 bg-gradient-to-b from-white/25 to-white/5 shadow-[inset_0_-2px_4px_rgba(0,0,0,0.1)] relative overflow-hidden">
                  <Logo collapsed={!sidebarOpen} />
             </div>
 
@@ -162,8 +162,8 @@ function App() {
             </nav>
 
             {/* Footer Sidebar */}
-            <div className="p-4 text-center border-t border-white/10 overflow-hidden whitespace-nowrap">
-               {sidebarOpen && <small className="text-white/40 text-xs font-medium tracking-wider uppercase">{appConfig.broker_name}</small>}
+            <div className="p-4 text-center border-t border-white/10 overflow-hidden whitespace-nowrap bg-black/5">
+               {sidebarOpen && <small className="text-white/50 text-xs font-medium tracking-wider uppercase">{appConfig.broker_name}</small>}
             </div>
         </div>
       </aside>
@@ -238,69 +238,3 @@ function App() {
                 <div className="max-w-[1600px] mx-auto">
                   <div className="mb-6 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 rounded-lg p-4 text-white shadow-card animate-fade-in">
                       <div className="flex items-center gap-4">
-                          <div className="bg-white/10 p-2 rounded-lg"><Globe size={24} className="text-blue-300"/></div>
-                          <div>
-                              <h2 className="text-sm font-bold uppercase tracking-wide text-blue-200">Integração Online</h2>
-                              <p className="text-lg font-bold">Agente Digital Ativo</p>
-                          </div>
-                      </div>
-                      <a href="https://netoguild-rgb.github.io/Agente-cg-corretora/" target="_blank" rel="noreferrer" className="bg-white text-slate-900 hover:bg-blue-50 px-4 py-2 rounded text-sm font-bold flex items-center gap-2 transition">
-                          Acessar Página <ExternalLink size={14}/>
-                      </a>
-                  </div>
-
-                  <Dashboard leads={safeLeads} />
-                  <div className="h-full pb-10"><KanbanBoard leads={filtered} onDragEnd={onDragEnd} onCardClick={setSelectedLead} /></div>
-                </div>
-            )}
-
-            {view === 'list' && (
-                <div className="bg-white rounded-lg shadow-card border border-slate-200 overflow-hidden max-w-[1600px] mx-auto animate-fade-in">
-                    <table className="w-full text-left border-collapse">
-                        <thead className="bg-slate-50 border-b border-slate-200">
-                            <tr>
-                              <th className="p-3 w-10 text-center"><input type="checkbox" onChange={toggleSelectAll} checked={selectedLeadsIds.length === filtered.length && filtered.length > 0} className="rounded border-slate-300 text-crm-600 focus:ring-crm-500"/></th>
-                              <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Nome do Lead</th>
-                              <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Contato</th>
-                              <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Interesse</th>
-                              <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                              <th className="p-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 text-sm">
-                            {filtered.map(lead => (
-                                <tr key={lead.id} onClick={() => setSelectedLead(lead)} className="hover:bg-slate-50 transition-colors cursor-pointer group">
-                                    <td className="p-3 text-center" onClick={e => e.stopPropagation()}>
-                                      <input type="checkbox" checked={selectedLeadsIds.includes(lead.id)} onChange={() => toggleSelectLead(lead.id)} className="rounded border-slate-300 text-crm-600 focus:ring-crm-500"/>
-                                    </td>
-                                    <td className="p-3 font-semibold text-crm-600 group-hover:underline">{lead.nome}</td>
-                                    <td className="p-3 text-slate-500">{lead.whatsapp}</td>
-                                    <td className="p-3"><span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs border border-slate-200">{lead.tipo_seguro}</span></td>
-                                    <td className="p-3">
-                                        <span className={`px-2 py-0.5 rounded text-xs font-bold inline-block border ${
-                                            lead.status==='FECHADO'?'bg-green-50 text-green-700 border-green-200':
-                                            lead.status==='PERDIDO'?'bg-red-50 text-red-700 border-red-200':
-                                            'bg-blue-50 text-blue-700 border-blue-200'}`}>
-                                            {lead.status}
-                                        </span>
-                                    </td>
-                                    <td className="p-3 text-right">
-                                      <button onClick={(e) => quickPdf(lead, e)} className="text-slate-400 hover:text-crm-600 p-1 rounded transition" title="Baixar Ficha"><FileDown size={16}/></button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    {filtered.length === 0 && <div className="p-10 text-center text-slate-400">Nenhum lead encontrado.</div>}
-                </div>
-            )}
-        </div>
-      </main>
-
-      {selectedLead && <LeadModal lead={selectedLead} onClose={() => setSelectedLead(null)} onDelete={async (id) => { await deleteLead(id); fetchLeads(); onClose(); }} onUpdate={fetchLeads} />}
-      {isNewLeadModalOpen && <NewLeadModal onClose={() => setIsNewLeadModalOpen(false)} onSuccess={fetchLeads} />}
-      {isWhatsAppModalOpen && <WhatsAppModal leads={leads.filter(l => selectedLeadsIds.includes(l.id))} onClose={() => setIsWhatsAppModalOpen(false)} />}
-    </div>
-  );
-}
-export default App;
