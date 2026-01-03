@@ -3,16 +3,18 @@ import logoCrm from '../assets/logo.png';
 
 const Logo = ({ collapsed }) => {
   return (
-    // Container com padding mínimo para centralização absoluta
-    <div className="flex items-center justify-center w-full h-full px-0.5">
+    // Container flexível
+    <div className="flex items-center justify-center w-full h-full">
       <img 
         src={logoCrm} 
         alt="CRM Seguros" 
-        // Aumentado o tamanho e a intensidade da sombra
+        // Lógica de Zoom (Aproximação):
+        // - scale-125: Aumenta a imagem em 25% além do tamanho original (efeito de zoom)
+        // - object-contain: Garante que ela não distorça
         className={`transition-all duration-300 ease-out object-contain filter drop-shadow-md ${
           collapsed 
-            ? 'h-11 w-auto'            // Fechado: Maior (44px)
-            : 'h-[58px] w-auto'        // Aberto: Quase a altura total do header (58px de 64px disponíveis)
+            ? 'h-10 w-auto opacity-90'        // Fechado: Pequeno e discreto
+            : 'h-full w-auto max-w-[90%] scale-125' // Aberto: Altura total + Zoom de 25% para aproximar
         }`} 
       />
     </div>
