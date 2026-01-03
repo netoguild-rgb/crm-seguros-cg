@@ -1,19 +1,16 @@
 import React from 'react';
-// Importa a imagem da pasta assets
 import logoCrm from '../assets/logo.png';
 
 const Logo = ({ collapsed }) => {
   return (
-    // Removi padding vertical e overflow para a imagem poder "sair" um pouco se necessário
-    <div className="flex items-center justify-center w-full">
+    <div className={`flex items-center justify-center w-full h-full transition-all duration-300 ${collapsed ? 'px-0' : 'px-2'}`}>
       <img 
         src={logoCrm} 
         alt="CRM Seguros" 
-        // Configuração "Maximizada":
-        // collapsed: w-14 (ícone grande quando fechado)
-        // aberto: w-full + scale-125 (ocupa 100% da largura e dá um zoom de 25% extra)
-        className={`transition-all duration-300 object-contain filter drop-shadow-sm ${
-          collapsed ? 'w-14' : 'w-full scale-90'
+        className={`transition-all duration-500 ease-in-out object-contain filter drop-shadow-sm ${
+          collapsed 
+            ? 'h-8 w-auto max-w-full opacity-90'  // Fechado: Altura fixa pequena, largura automática
+            : 'h-9 w-auto max-w-[160px]'         // Aberto: Altura controlada, limita largura para não estourar
         }`} 
       />
     </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown, ChevronRight, X } from 'lucide-react';
+import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown, X, MessageCircle } from 'lucide-react';
 import { getLeads, updateLeadStatus, deleteLead, getConfig } from './services/api';
 
 // --- COMPONENTES ---
@@ -30,7 +30,7 @@ function App() {
 
   const DEFAULT_LOGO = logoImg;
 
-  // Configuração Visual (Padrão Azul Salesforce se não vier nada)
+  // Configuração Visual (Padrão Azul Salesforce)
   const [appConfig, setAppConfig] = useState({ 
     broker_name: 'CRM Seguros', 
     primary_color: '#0176D3', 
@@ -127,14 +127,14 @@ function App() {
     <button 
       onClick={onClick} 
       className={`
-        w-full flex items-center gap-3 px-4 py-3 my-1 transition-all duration-200 border-l-4
+        w-full flex items-center gap-3 px-4 py-3 my-1 transition-all duration-200 border-l-4 group
         ${active 
-          ? 'bg-white/10 border-white text-white font-semibold' 
-          : 'border-transparent text-blue-100 hover:text-white hover:bg-white/5'
+          ? 'bg-black/20 border-white/50 text-white font-semibold' 
+          : 'border-transparent text-white/70 hover:text-white hover:bg-white/10'
         }
       `}
     >
-      <Icon size={20} className={active ? 'text-white' : 'text-blue-200'} />
+      <Icon size={20} className={`transition-transform duration-300 ${active ? 'text-white scale-110' : 'group-hover:scale-110'}`} />
       {!collapsed && <span className="text-sm tracking-wide">{label}</span>}
     </button>
   );
@@ -142,14 +142,15 @@ function App() {
   return (
     <div className="flex h-screen bg-crm-50 overflow-hidden font-sans text-slate-700">
       
-      {/* SIDEBAR ESTILO SALESFORCE (Escura/Azul Profundo) */}
+      {/* SIDEBAR */}
       <aside 
         style={{ backgroundColor: appConfig.primary_color }} 
         className={`relative flex flex-col shadow-xl z-30 transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-20'}`}
       >
         <div className="flex flex-col h-full z-10 relative">
-            {/* Logo Area */}
-            <div className="h-16 flex items-center justify-center bg-black/10 px-4">
+            
+            {/* Logo Area - CORRIGIDO: Sem bg-black, altura fixa, borda suave */}
+            <div className="h-16 flex items-center justify-center border-b border-white/10 shrink-0 mx-2">
                  <Logo collapsed={!sidebarOpen} />
             </div>
 
@@ -161,22 +162,21 @@ function App() {
             </nav>
 
             {/* Footer Sidebar */}
-            <div className="p-4 text-center border-t border-white/10">
-               {sidebarOpen && <small className="text-blue-200 text-xs">{appConfig.broker_name}</small>}
+            <div className="p-4 text-center border-t border-white/10 overflow-hidden whitespace-nowrap">
+               {sidebarOpen && <small className="text-white/40 text-xs font-medium tracking-wider uppercase">{appConfig.broker_name}</small>}
             </div>
         </div>
       </aside>
 
       {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col min-w-0 bg-crm-50 relative">
-        {/* Header Global (Branco, Sombra Suave) */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-20">
           <div className="flex items-center gap-4">
              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-slate-100 rounded text-slate-500 transition-colors">
                 <Menu size={20}/>
              </button>
              {view !== 'config' && (
-                <div className="relative hidden md:block w-96">
+                <div className="relative hidden md:block w-96 animate-fade-in">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16}/>
                     <input 
                       type="text" 
@@ -192,13 +192,12 @@ function App() {
             <button onClick={fetchLeads} className={`p-2 hover:bg-slate-100 rounded-full text-slate-500 hover:text-crm-600 transition ${loading ? 'animate-spin text-crm-600' : ''}`} title="Atualizar Dados">
                 <RefreshCw size={18}/>
             </button>
-            <button onClick={() => setIsNewLeadModalOpen(true)} className="bg-crm-500 hover:bg-crm-600 text-white px-4 py-2 rounded text-sm font-bold shadow-sm transition flex items-center gap-2">
+            <button onClick={() => setIsNewLeadModalOpen(true)} className="bg-crm-500 hover:bg-crm-600 text-white px-4 py-2 rounded text-sm font-bold shadow-sm transition flex items-center gap-2 transform active:scale-95">
                 <Plus size={16}/> Novo Lead
             </button>
           </div>
         </header>
 
-        {/* Barra de Ferramentas / Filtros */}
         {view !== 'config' && (
             <div className="bg-white border-b border-slate-200 px-6 py-2 flex gap-3 items-center overflow-x-auto shadow-[0_2px_3px_-1px_rgba(0,0,0,0.05)] z-10">
                 <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mr-2">
@@ -237,7 +236,6 @@ function App() {
 
             {view === 'kanban' && (
                 <div className="max-w-[1600px] mx-auto">
-                  {/* Banner "Agente Digital" mais discreto */}
                   <div className="mb-6 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 rounded-lg p-4 text-white shadow-card animate-fade-in">
                       <div className="flex items-center gap-4">
                           <div className="bg-white/10 p-2 rounded-lg"><Globe size={24} className="text-blue-300"/></div>
