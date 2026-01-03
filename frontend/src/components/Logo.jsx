@@ -13,7 +13,7 @@ const Logo = ({ collapsed }) => {
         // collapsed: w-14 (ícone grande quando fechado)
         // aberto: w-full + scale-125 (ocupa 100% da largura e dá um zoom de 25% extra)
         className={`transition-all duration-300 object-contain filter drop-shadow-sm ${
-          collapsed ? 'w-14' : 'w-full scale-100'
+          collapsed ? 'w-14' : 'w-full scale-110'
         }`} 
       />
     </div>
