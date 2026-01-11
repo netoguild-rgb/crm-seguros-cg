@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown, X, MessageCircle, Sparkles, Inbox, Megaphone, Briefcase } from 'lucide-react';
+import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown, X, MessageCircle, Sparkles, Inbox, Megaphone, Briefcase, CreditCard, LogOut, User } from 'lucide-react';
 import { getLeads, updateLeadStatus, deleteLead, getConfig } from './services/api';
 
 // --- COMPONENTES ---
@@ -13,20 +13,26 @@ import Logo from './components/Logo';
 import InboxPage from './components/InboxPage';
 import MarketingPage from './components/MarketingPage';
 import ServicesPage from './components/ServicesPage';
+import LoginPage from './components/LoginPage';
+import RegisterPage from './components/RegisterPage';
+import PricingPage from './components/PricingPage';
+import BillingPage from './components/BillingPage';
 import { ToastProvider, useToast } from './components/Toast';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // --- UTILITÁRIOS ---
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import logoImg from './assets/logo.png';
 
-function AppContent() {
+function CRMContent() {
   const [leads, setLeads] = useState([]);
   const [view, setView] = useState('kanban');
   const [selectedLead, setSelectedLead] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+  const { user, logout } = useAuth();
 
   // Filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,6 +51,7 @@ function AppContent() {
   const [isNewLeadModalOpen, setIsNewLeadModalOpen] = useState(false);
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [selectedLeadsIds, setSelectedLeadsIds] = useState([]);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
     fetchLeads();
@@ -155,7 +162,24 @@ function AppContent() {
     toast.success('Novo lead criado!', 'Sucesso');
   };
 
-  const MenuItem = ({ icon: Icon, label, active, onClick, collapsed }) => (
+  const handleLogout = () => {
+    logout();
+    toast.info('Você saiu da conta');
+  };
+
+  // Plan badge helper
+  const getPlanBadge = () => {
+    const plan = user?.subscription?.plan || 'free';
+    const badges = {
+      free: { text: 'Free', color: 'bg-slate-500' },
+      basic: { text: 'Basic', color: 'bg-blue-500' },
+      pro: { text: 'Pro', color: 'bg-purple-500' },
+      enterprise: { text: 'Enterprise', color: 'bg-amber-500' }
+    };
+    return badges[plan] || badges.free;
+  };
+
+  const MenuItem = ({ icon: Icon, label, active, onClick, collapsed, badge }) => (
     <button
       onClick={onClick}
       className={`
@@ -168,9 +192,34 @@ function AppContent() {
       style={{ width: 'calc(100% - 16px)' }}
     >
       <Icon size={20} className={`transition-all duration-300 ${active ? 'text-white' : 'group-hover:scale-110'}`} />
-      {!collapsed && <span className="text-sm tracking-wide">{label}</span>}
+      {!collapsed && <span className="text-sm tracking-wide flex-1 text-left">{label}</span>}
+      {!collapsed && badge && (
+        <span className={`${badge.color} text-white text-[10px] px-2 py-0.5 rounded-full font-bold`}>
+          {badge.text}
+        </span>
+      )}
     </button>
   );
+
+  // Render Billing page
+  if (view === 'billing') {
+    return <BillingPage onBack={() => setView('pricing')} />;
+  }
+
+  // Render Pricing page
+  if (view === 'pricing') {
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setView('kanban')}
+          className="absolute top-4 left-4 z-50 p-2 bg-slate-700/50 hover:bg-slate-700 rounded-xl text-white transition-colors"
+        >
+          ← Voltar ao CRM
+        </button>
+        <PricingPage onNavigateToBilling={() => setView('billing')} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-crm-50 overflow-hidden font-sans text-slate-700">
@@ -201,6 +250,7 @@ function AppContent() {
             {/* Divider */}
             <div className="my-3 mx-4 border-t border-white/10"></div>
 
+            <MenuItem icon={CreditCard} label="Planos" active={view === 'pricing'} onClick={() => setView('pricing')} collapsed={!sidebarOpen} badge={getPlanBadge()} />
             <MenuItem icon={Settings} label="Configurações" active={view === 'config'} onClick={() => setView('config')} collapsed={!sidebarOpen} />
           </nav>
 
@@ -258,6 +308,64 @@ function AppContent() {
             >
               <Plus size={18} /> Novo Lead
             </button>
+
+            {/* User Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center gap-2 p-2 hover:bg-slate-100 rounded-xl transition-colors"
+              >
+                <div className="w-8 h-8 bg-gradient-to-br from-crm-500 to-accent-purple rounded-full flex items-center justify-center">
+                  <User size={16} className="text-white" />
+                </div>
+                {user && (
+                  <span className="text-sm font-medium text-slate-700 hidden md:block">
+                    {user.name?.split(' ')[0]}
+                  </span>
+                )}
+              </button>
+
+              {showUserMenu && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden">
+                    <div className="p-4 border-b border-slate-100">
+                      <p className="font-semibold text-slate-800">{user?.name}</p>
+                      <p className="text-sm text-slate-500">{user?.email}</p>
+                      <div className="mt-2">
+                        <span className={`${getPlanBadge().color} text-white text-xs px-2 py-1 rounded-full font-bold`}>
+                          Plano {getPlanBadge().text}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-2">
+                      <button
+                        onClick={() => { setView('pricing'); setShowUserMenu(false); }}
+                        className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
+                      >
+                        <CreditCard size={16} />
+                        Gerenciar Plano
+                      </button>
+                      <button
+                        onClick={() => { setView('config'); setShowUserMenu(false); }}
+                        className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
+                      >
+                        <Settings size={16} />
+                        Configurações
+                      </button>
+                      <div className="border-t border-slate-100 my-2" />
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <LogOut size={16} />
+                        Sair
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </header >
 
@@ -427,11 +535,41 @@ function AppContent() {
   );
 }
 
+function AppContent() {
+  const { isAuthenticated, loading } = useAuth();
+  const [authView, setAuthView] = useState('login');
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-400">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not authenticated - show login/register
+  if (!isAuthenticated) {
+    if (authView === 'register') {
+      return <RegisterPage onNavigateToLogin={() => setAuthView('login')} />;
+    }
+    return <LoginPage onNavigateToRegister={() => setAuthView('register')} />;
+  }
+
+  // Authenticated - show CRM
+  return <CRMContent />;
+}
+
 function App() {
   return (
-    <ToastProvider>
-      <AppContent />
-    </ToastProvider>
+    <AuthProvider>
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
+    </AuthProvider>
   );
 }
 
