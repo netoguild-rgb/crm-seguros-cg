@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, Palette, Link as LinkIcon, MessageSquare, CheckCircle, Loader2, Eye } from 'lucide-react';
+import { Settings, Save, Palette, Link as LinkIcon, MessageSquare, CheckCircle, Loader2, Eye, Smartphone, Wifi, WifiOff, RefreshCw, QrCode, Bot, Zap } from 'lucide-react';
 import { getConfig, saveConfig } from '../services/api';
 
 const ConfigPage = ({ onConfigUpdate }) => {
@@ -175,6 +175,137 @@ const ConfigPage = ({ onConfigUpdate }) => {
             className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none resize-none transition-all hover:border-slate-300 shadow-sm"
           />
           <p className="text-xs text-slate-400 mt-2">Esta mensagem será incluída no início de todos os envios em massa</p>
+        </div>
+      </Section>
+
+      {/* Nova Seção: Redes Sociais & WhatsApp */}
+      <Section
+        title="Redes Sociais & WhatsApp"
+        icon={Smartphone}
+        description="Conecte seu WhatsApp via Evolution API para agente autônomo"
+      >
+        <div className="space-y-6">
+          {/* Status de Conexão */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${config.evolution_connected ? 'bg-green-100' : 'bg-red-100'}`}>
+                {config.evolution_connected ? <Wifi size={20} className="text-green-600" /> : <WifiOff size={20} className="text-red-500" />}
+              </div>
+              <div>
+                <p className="font-semibold text-slate-800">Status da Conexão</p>
+                <p className="text-xs text-slate-500">
+                  {config.evolution_connected ? 'WhatsApp conectado e funcionando' : 'Escaneie o QR Code para conectar'}
+                </p>
+              </div>
+            </div>
+            <div className={`whatsapp-status ${config.evolution_connected ? 'connected' : 'disconnected'}`}>
+              <span className={`w-2 h-2 rounded-full ${config.evolution_connected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
+              {config.evolution_connected ? 'Conectado' : 'Desconectado'}
+            </div>
+          </div>
+
+          {/* Configurações da Evolution API */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <InputLabel>URL do Servidor Evolution</InputLabel>
+              <input
+                type="text"
+                value={config.evolution_url || ''}
+                onChange={(e) => setConfig({ ...config, evolution_url: e.target.value })}
+                placeholder="https://api.evolution.exemplo.com"
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none transition-all hover:border-slate-300 shadow-sm"
+              />
+            </div>
+            <div>
+              <InputLabel>API Key / Token</InputLabel>
+              <input
+                type="password"
+                value={config.evolution_apikey || ''}
+                onChange={(e) => setConfig({ ...config, evolution_apikey: e.target.value })}
+                placeholder="••••••••••••••••"
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none transition-all hover:border-slate-300 shadow-sm font-mono"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <InputLabel>Nome da Instância</InputLabel>
+              <input
+                type="text"
+                value={config.evolution_instance || ''}
+                onChange={(e) => setConfig({ ...config, evolution_instance: e.target.value })}
+                placeholder="minha-instancia-whatsapp"
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none transition-all hover:border-slate-300 shadow-sm"
+              />
+              <p className="text-xs text-slate-400 mt-2">Identificador único da sua instância na Evolution API</p>
+            </div>
+          </div>
+
+          {/* QR Code Area */}
+          <div className="qrcode-container">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <QrCode size={20} className="text-crm-600" />
+                <span className="font-bold text-slate-800">QR Code WhatsApp</span>
+              </div>
+              <button
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-crm-500 to-accent-purple text-white text-sm font-semibold rounded-xl hover:shadow-lg transition-all hover:-translate-y-0.5"
+                onClick={() => {
+                  // Placeholder - será conectado à API depois
+                  alert('Para gerar o QR Code, primeiro configure a URL e API Key da Evolution API acima, depois salve as configurações.');
+                }}
+              >
+                <RefreshCw size={16} />
+                Gerar QR Code
+              </button>
+            </div>
+
+            <div className="qrcode-placeholder">
+              <div className="text-center">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
+                  <QrCode size={40} className="text-slate-400" />
+                </div>
+                <p className="text-slate-600 font-semibold">Nenhum QR Code gerado</p>
+                <p className="text-slate-400 text-sm mt-1">Configure os dados da Evolution API e clique em "Gerar QR Code"</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Agente Autônomo Toggle */}
+          <div className="p-5 rounded-xl bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg">
+                  <Bot size={24} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                    Agente Autônomo
+                    <Zap size={14} className="text-yellow-500" />
+                  </h4>
+                  <p className="text-sm text-slate-500">Responde automaticamente às mensagens do WhatsApp</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setConfig({ ...config, agent_enabled: !config.agent_enabled })}
+                className={`agent-toggle ${config.agent_enabled ? 'active' : ''}`}
+                aria-label="Toggle Agente Autônomo"
+              >
+              </button>
+            </div>
+
+            {config.agent_enabled && (
+              <div className="mt-4 pt-4 border-t border-emerald-200 animate-fade-in">
+                <InputLabel>Webhook de Resposta</InputLabel>
+                <input
+                  type="text"
+                  value={config.agent_webhook || ''}
+                  onChange={(e) => setConfig({ ...config, agent_webhook: e.target.value })}
+                  placeholder="https://n8n.exemplo.com/webhook/..."
+                  className="w-full px-4 py-3 border border-emerald-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition-all hover:border-emerald-300 shadow-sm bg-white"
+                />
+                <p className="text-xs text-emerald-600 mt-2">URL do n8n ou outro serviço de automação para processar mensagens</p>
+              </div>
+            )}
+          </div>
         </div>
       </Section>
 

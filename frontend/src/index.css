@@ -8,27 +8,31 @@
    ============================================ */
 
 :root {
-  /* Core Brand Colors */
-  --primary: 217 91% 60%;
-  --primary-dark: 217 91% 45%;
-  --accent: 280 87% 65%;
-  --accent-alt: 340 82% 60%;
-  
+  /* Core Brand Colors - Baseado na Logo CRM Seguros */
+  --primary: 197 79% 53%;
+  /* #2AABE4 - Ciano da logo */
+  --primary-dark: 206 75% 45%;
+  /* #1E8AC7 - Azul médio */
+  --accent: 213 73% 15%;
+  /* #0A1F44 - Navy da logo */
+  --accent-alt: 204 90% 47%;
+  /* #0EA5E9 - Azul complementar */
+
   /* Semantic Colors */
   --success: 158 64% 52%;
   --warning: 43 96% 56%;
   --danger: 0 84% 60%;
   --info: 199 89% 48%;
-  
-  /* Neutral Background */
-  --bg-base: 222 47% 11%;
-  --bg-surface: 223 47% 13%;
-  --bg-elevated: 224 47% 16%;
-  
+
+  /* Neutral Background - Tons de Navy */
+  --bg-base: 213 73% 10%;
+  --bg-surface: 213 73% 13%;
+  --bg-elevated: 213 73% 16%;
+
   /* Glass Effect */
   --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: rgba(0, 0, 0, 0.25);
+  --glass-border: rgba(42, 171, 228, 0.15);
+  --glass-shadow: rgba(10, 31, 68, 0.35);
 }
 
 /* Light theme overrides */
@@ -60,7 +64,7 @@ body {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 
+  box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
@@ -73,26 +77,26 @@ body {
 }
 
 /* ============================================
-   GRADIENT UTILITIES
+   GRADIENT UTILITIES - Cores da Logo CRM Seguros
    ============================================ */
 .gradient-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2AABE4 0%, #0A1F44 100%);
 }
 
 .gradient-success {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
 }
 
 .gradient-warning {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
 }
 
 .gradient-premium {
-  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  background: linear-gradient(135deg, #0A2540 0%, #0A1F44 50%, #061224 100%);
 }
 
 .gradient-sidebar {
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #020617 100%);
+  background: linear-gradient(180deg, #0A2540 0%, #0A1F44 50%, #061224 100%);
 }
 
 .gradient-card-new {
@@ -117,7 +121,7 @@ body {
 
 /* Text gradients */
 .text-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2AABE4 0%, #0A1F44 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -127,58 +131,131 @@ body {
    PREMIUM ANIMATIONS
    ============================================ */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInLeft {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes fadeInRight {
-  from { opacity: 0; transform: translateX(20px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes slideInUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.4); }
-  50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.8); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(102, 126, 234, 0.8);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes bounce-subtle {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 /* Animation Classes */
@@ -215,7 +292,7 @@ body {
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -229,11 +306,25 @@ body {
 }
 
 /* Staggered animations */
-.stagger-1 { animation-delay: 0.1s; }
-.stagger-2 { animation-delay: 0.2s; }
-.stagger-3 { animation-delay: 0.3s; }
-.stagger-4 { animation-delay: 0.4s; }
-.stagger-5 { animation-delay: 0.5s; }
+.stagger-1 {
+  animation-delay: 0.1s;
+}
+
+.stagger-2 {
+  animation-delay: 0.2s;
+}
+
+.stagger-3 {
+  animation-delay: 0.3s;
+}
+
+.stagger-4 {
+  animation-delay: 0.4s;
+}
+
+.stagger-5 {
+  animation-delay: 0.5s;
+}
 
 /* ============================================
    INTERACTIVE STATES
@@ -290,12 +381,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(180deg, #2AABE4 0%, #0A1F44 100%);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #5a67d8 0%, #6b46c1 100%);
+  background: linear-gradient(180deg, #1E8AC7 0%, #0A2540 100%);
 }
 
 /* ============================================
@@ -313,7 +404,7 @@ body {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, #2AABE4, #0A1F44);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -324,9 +415,9 @@ body {
 
 .kanban-card:hover {
   transform: translateY(-2px) scale(1.01);
-  box-shadow: 
+  box-shadow:
     0 10px 40px rgba(0, 0, 0, 0.12),
-    0 0 0 1px rgba(102, 126, 234, 0.1);
+    0 0 0 1px rgba(42, 171, 228, 0.2);
 }
 
 /* Hot Lead Indicator */
@@ -392,17 +483,23 @@ body {
 }
 
 /* ============================================
-   SIDEBAR PREMIUM
+   SIDEBAR PREMIUM - Cores da Logo CRM Seguros
    ============================================ */
 .sidebar-premium {
-  background: linear-gradient(180deg, 
-    rgba(30, 41, 59, 0.98) 0%, 
-    rgba(15, 23, 42, 0.99) 50%, 
-    rgba(2, 6, 23, 1) 100%
-  );
-  box-shadow: 
+  background: linear-gradient(180deg,
+      rgba(10, 37, 64, 0.98) 0%,
+      rgba(10, 31, 68, 0.99) 50%,
+      rgba(6, 18, 36, 1) 100%);
+  box-shadow:
     4px 0 30px rgba(0, 0, 0, 0.3),
-    inset -1px 0 0 rgba(255, 255, 255, 0.05);
+    inset -1px 0 0 rgba(42, 171, 228, 0.1);
+}
+
+/* Área da Logo - Sem borda inferior */
+.sidebar-logo-area {
+  position: relative;
+  background: transparent;
+  overflow: visible;
 }
 
 .sidebar-item {
@@ -417,7 +514,7 @@ body {
   top: 0;
   bottom: 0;
   width: 3px;
-  background: linear-gradient(180deg, #667eea, #764ba2);
+  background: linear-gradient(180deg, #2AABE4, #0A1F44);
   transform: scaleY(0);
   transition: transform 0.3s ease;
 }
@@ -429,6 +526,99 @@ body {
 
 .sidebar-item.active {
   background: rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================
+   QR CODE & REDES SOCIAIS
+   ============================================ */
+.qrcode-container {
+  @apply relative p-6 rounded-2xl;
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(248, 250, 252, 0.98) 100%);
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.qrcode-container::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, #2AABE4, #1E8AC7, #25D366);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.qrcode-container:hover::before {
+  opacity: 1;
+}
+
+.qrcode-placeholder {
+  @apply flex flex-col items-center justify-center p-8 rounded-xl;
+  background: repeating-linear-gradient(45deg,
+      transparent,
+      transparent 10px,
+      rgba(42, 171, 228, 0.03) 10px,
+      rgba(42, 171, 228, 0.03) 20px);
+  border: 2px dashed rgba(42, 171, 228, 0.3);
+  min-height: 200px;
+}
+
+.whatsapp-status {
+  @apply flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold;
+  transition: all 0.3s ease;
+}
+
+.whatsapp-status.connected {
+  background: linear-gradient(135deg, rgba(37, 211, 102, 0.15), rgba(37, 211, 102, 0.05));
+  color: #128C7E;
+  border: 1px solid rgba(37, 211, 102, 0.3);
+}
+
+.whatsapp-status.disconnected {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05));
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.whatsapp-status.pending {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05));
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.agent-toggle {
+  @apply relative w-14 h-7 rounded-full cursor-pointer transition-all duration-300;
+  background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+}
+
+.agent-toggle.active {
+  background: linear-gradient(135deg, #25D366, #128C7E);
+  box-shadow: 0 0 20px rgba(37, 211, 102, 0.4);
+}
+
+.agent-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 23px;
+  height: 23px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.agent-toggle.active::after {
+  transform: translateX(28px);
 }
 
 /* ============================================
@@ -446,7 +636,7 @@ body {
   right: -50%;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(42, 171, 228, 0.1) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -457,7 +647,7 @@ body {
 
 .kpi-value {
   @apply text-3xl font-black;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2AABE4 0%, #0A1F44 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -478,8 +668,8 @@ input:focus,
 select:focus,
 textarea:focus {
   @apply outline-none ring-2 ring-offset-0;
-  ring-color: rgba(102, 126, 234, 0.5);
-  border-color: #667eea;
+  ring-color: rgba(42, 171, 228, 0.5);
+  border-color: #2AABE4;
 }
 
 /* Modern Select */
@@ -501,9 +691,9 @@ select {
 }
 
 .badge-new {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #2AABE4 0%, #0A1F44 100%);
   color: white;
-  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 2px 10px rgba(42, 171, 228, 0.4);
 }
 
 .badge-negotiation {
@@ -551,5 +741,7 @@ select {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }

@@ -174,29 +174,31 @@ function AppContent() {
 
       {/* SIDEBAR PREMIUM */}
       <aside
-        className={`sidebar-premium relative flex flex-col z-30 transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-20'}`}
+        className={`sidebar-premium relative flex flex-col z-30 transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-48' : 'w-20'}`}
       >
         <div className="flex flex-col h-full z-10 relative">
 
-          {/* Logo Area */}
-          <div className="h-28 py-5 flex items-center justify-center border-b border-white/10 shrink-0 bg-gradient-to-b from-white/10 to-transparent relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-crm-500/20 to-accent-purple/10" />
+          {/* Logo Area - Logo ultrapassa a borda */}
+          <div className="sidebar-logo-area h-40 py-4 flex items-center justify-center shrink-0 relative overflow-visible z-10">
             <Logo collapsed={!sidebarOpen} />
           </div>
 
           {/* Menu */}
-          <nav className="flex-1 py-6 space-y-1 overflow-y-auto">
+          <nav className="flex-1 py-6 px-2 space-y-1 overflow-y-auto">
             <MenuItem icon={LayoutDashboard} label="Visão Geral" active={view === 'kanban'} onClick={() => setView('kanban')} collapsed={!sidebarOpen} />
             <MenuItem icon={Users} label="Lista de Leads" active={view === 'list'} onClick={() => setView('list')} collapsed={!sidebarOpen} />
             <MenuItem icon={Settings} label="Configurações" active={view === 'config'} onClick={() => setView('config')} collapsed={!sidebarOpen} />
           </nav>
 
-          {/* Footer Sidebar */}
-          <div className="p-4 text-center border-t border-white/10 overflow-hidden whitespace-nowrap bg-black/10">
+          {/* Footer Sidebar - Mais profissional */}
+          <div className="p-4 text-center border-t border-crm-500/20 overflow-hidden whitespace-nowrap bg-gradient-to-t from-black/20 to-transparent">
             {sidebarOpen && (
-              <div className="flex items-center justify-center gap-2">
-                <Sparkles size={14} className="text-crm-500" />
-                <small className="text-white/50 text-xs font-medium tracking-wider">{appConfig.broker_name}</small>
+              <div className="flex flex-col items-center gap-1">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={14} className="text-crm-400" />
+                  <small className="text-white/70 text-xs font-semibold tracking-wide">{appConfig.broker_name}</small>
+                </div>
+                <small className="text-white/40 text-[10px]">v2.0 Premium</small>
               </div>
             )}
           </div>
@@ -243,50 +245,52 @@ function AppContent() {
               <Plus size={18} /> Novo Lead
             </button>
           </div>
-        </header>
+        </header >
 
         {/* Filter Bar */}
-        {view !== 'config' && (
-          <div className="bg-white/60 backdrop-blur-sm border-b border-slate-200/50 px-6 py-3 flex gap-3 items-center overflow-x-auto z-10">
-            <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mr-2">
-              <Filter size={14} />
-              <span className="hidden sm:inline">Filtros</span>
-            </div>
-            <select
-              value={filterStatus}
-              onChange={e => setFilterStatus(e.target.value)}
-              className="text-xs font-semibold bg-white border border-slate-200 rounded-xl px-4 py-2 focus:border-crm-500 focus:ring-2 focus:ring-crm-500/20 outline-none text-slate-600 cursor-pointer shadow-sm hover:border-slate-300 transition-all"
-            >
-              <option value="">Status: Todos</option>
-              <option value="NOVO">Novo</option>
-              <option value="NEGOCIACAO">Em Negociação</option>
-              <option value="FECHADO">Fechado</option>
-              <option value="PERDIDO">Perdido</option>
-            </select>
-            <select
-              value={filterType}
-              onChange={e => setFilterType(e.target.value)}
-              className="text-xs font-semibold bg-white border border-slate-200 rounded-xl px-4 py-2 focus:border-crm-500 focus:ring-2 focus:ring-crm-500/20 outline-none text-slate-600 cursor-pointer shadow-sm hover:border-slate-300 transition-all"
-            >
-              <option value="">Tipo: Todos</option>
-              <option value="Seguro Auto">Auto</option>
-              <option value="Seguro Vida">Vida</option>
-              <option value="Residencial">Residencial</option>
-              <option value="Plano de Saúde">Saúde</option>
-            </select>
-
-            {selectedLeadsIds.length > 0 && view === 'list' && (
-              <div className="ml-auto flex items-center gap-3 animate-fade-in bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2 rounded-xl border border-blue-200 shadow-sm">
-                <span className="text-xs font-bold text-blue-800">{selectedLeadsIds.length} selecionados</span>
-                <button onClick={() => setSelectedLeadsIds([])} className="p-1.5 hover:bg-blue-100 rounded-lg text-blue-800 transition-colors"><X size={14} /></button>
-                <div className="h-5 w-px bg-blue-200"></div>
-                <button onClick={() => setIsWhatsAppModalOpen(true)} className="flex items-center gap-1.5 text-green-700 hover:text-green-800 text-xs font-bold bg-green-100 px-3 py-1.5 rounded-lg hover:bg-green-200 transition-all">
-                  <Send size={12} /> Enviar WhatsApp
-                </button>
+        {
+          view !== 'config' && (
+            <div className="bg-white/60 backdrop-blur-sm border-b border-slate-200/50 px-6 py-3 flex gap-3 items-center overflow-x-auto z-10">
+              <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mr-2">
+                <Filter size={14} />
+                <span className="hidden sm:inline">Filtros</span>
               </div>
-            )}
-          </div>
-        )}
+              <select
+                value={filterStatus}
+                onChange={e => setFilterStatus(e.target.value)}
+                className="text-xs font-semibold bg-white border border-slate-200 rounded-xl px-4 py-2 focus:border-crm-500 focus:ring-2 focus:ring-crm-500/20 outline-none text-slate-600 cursor-pointer shadow-sm hover:border-slate-300 transition-all"
+              >
+                <option value="">Status: Todos</option>
+                <option value="NOVO">Novo</option>
+                <option value="NEGOCIACAO">Em Negociação</option>
+                <option value="FECHADO">Fechado</option>
+                <option value="PERDIDO">Perdido</option>
+              </select>
+              <select
+                value={filterType}
+                onChange={e => setFilterType(e.target.value)}
+                className="text-xs font-semibold bg-white border border-slate-200 rounded-xl px-4 py-2 focus:border-crm-500 focus:ring-2 focus:ring-crm-500/20 outline-none text-slate-600 cursor-pointer shadow-sm hover:border-slate-300 transition-all"
+              >
+                <option value="">Tipo: Todos</option>
+                <option value="Seguro Auto">Auto</option>
+                <option value="Seguro Vida">Vida</option>
+                <option value="Residencial">Residencial</option>
+                <option value="Plano de Saúde">Saúde</option>
+              </select>
+
+              {selectedLeadsIds.length > 0 && view === 'list' && (
+                <div className="ml-auto flex items-center gap-3 animate-fade-in bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2 rounded-xl border border-blue-200 shadow-sm">
+                  <span className="text-xs font-bold text-blue-800">{selectedLeadsIds.length} selecionados</span>
+                  <button onClick={() => setSelectedLeadsIds([])} className="p-1.5 hover:bg-blue-100 rounded-lg text-blue-800 transition-colors"><X size={14} /></button>
+                  <div className="h-5 w-px bg-blue-200"></div>
+                  <button onClick={() => setIsWhatsAppModalOpen(true)} className="flex items-center gap-1.5 text-green-700 hover:text-green-800 text-xs font-bold bg-green-100 px-3 py-1.5 rounded-lg hover:bg-green-200 transition-all">
+                    <Send size={12} /> Enviar WhatsApp
+                  </button>
+                </div>
+              )}
+            </div>
+          )
+        }
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-6 scroll-smooth">
@@ -366,9 +370,9 @@ function AppContent() {
                       </td>
                       <td className="p-4">
                         <span className={`px-3 py-1 rounded-lg text-xs font-bold inline-block ${lead.status === 'FECHADO' ? 'badge-closed' :
-                            lead.status === 'PERDIDO' ? 'badge-lost' :
-                              lead.status === 'NEGOCIACAO' ? 'badge-negotiation' :
-                                'badge-new'}`}>
+                          lead.status === 'PERDIDO' ? 'badge-lost' :
+                            lead.status === 'NEGOCIACAO' ? 'badge-negotiation' :
+                              'badge-new'}`}>
                           {lead.status}
                         </span>
                       </td>
@@ -395,12 +399,13 @@ function AppContent() {
             </div>
           )}
         </div>
-      </main>
+      </main >
 
-      {selectedLead && <LeadModal lead={selectedLead} onClose={() => setSelectedLead(null)} onDelete={handleDeleteLead} onUpdate={fetchLeads} />}
+      {selectedLead && <LeadModal lead={selectedLead} onClose={() => setSelectedLead(null)} onDelete={handleDeleteLead} onUpdate={fetchLeads} />
+      }
       {isNewLeadModalOpen && <NewLeadModal onClose={() => setIsNewLeadModalOpen(false)} onSuccess={handleNewLeadSuccess} />}
       {isWhatsAppModalOpen && <WhatsAppModal leads={leads.filter(l => selectedLeadsIds.includes(l.id))} onClose={() => setIsWhatsAppModalOpen(false)} />}
-    </div>
+    </div >
   );
 }
 
