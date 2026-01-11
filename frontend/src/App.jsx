@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown, X, MessageCircle, Sparkles, Inbox, Megaphone, Briefcase, CreditCard, LogOut, User } from 'lucide-react';
+import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown, X, MessageCircle, Sparkles, Inbox, Megaphone, Briefcase, CreditCard, LogOut, User, Moon, Sun } from 'lucide-react';
 import { getLeads, updateLeadStatus, deleteLead, getConfig } from './services/api';
 
 // --- COMPONENTES ---
@@ -19,6 +19,7 @@ import PricingPage from './components/PricingPage';
 import BillingPage from './components/BillingPage';
 import { ToastProvider, useToast } from './components/Toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
 // --- UTILITÁRIOS ---
 import jsPDF from 'jspdf';
@@ -33,6 +34,7 @@ function CRMContent() {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
   const { user, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   // Filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -297,11 +299,30 @@ function CRMContent() {
           <div className="flex items-center gap-3">
             <button
               onClick={fetchLeads}
-              className={`p-2.5 hover:bg-slate-100 rounded-xl text-slate-500 hover:text-crm-600 transition-all duration-200 ${loading ? 'animate-spin text-crm-600' : ''}`}
+              className={`p-2.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl text-slate-500 dark:text-slate-400 hover:text-crm-600 transition-all duration-200 ${loading ? 'animate-spin text-crm-600' : ''}`}
               title="Atualizar Dados"
             >
               <RefreshCw size={18} />
             </button>
+
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl text-slate-500 dark:text-slate-400 hover:text-crm-600 dark:hover:text-crm-400 transition-all duration-300 relative overflow-hidden group"
+              title={isDark ? 'Modo Claro' : 'Modo Escuro'}
+            >
+              <div className="relative w-[18px] h-[18px]">
+                <Sun
+                  size={18}
+                  className={`absolute inset-0 transition-all duration-300 ${isDark ? 'opacity-100 rotate-0' : 'opacity-0 rotate-90'}`}
+                />
+                <Moon
+                  size={18}
+                  className={`absolute inset-0 transition-all duration-300 ${isDark ? 'opacity-0 -rotate-90' : 'opacity-100 rotate-0'}`}
+                />
+              </div>
+            </button>
+
             <button
               onClick={() => setIsNewLeadModalOpen(true)}
               className="bg-gradient-to-r from-crm-500 to-accent-purple hover:shadow-glow text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg transition-all duration-300 flex items-center gap-2 hover:-translate-y-0.5 active:scale-95"
@@ -565,11 +586,13 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <AppContent />
-      </ToastProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
