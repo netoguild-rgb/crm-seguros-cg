@@ -1,63 +1,70 @@
 import React, { useState } from 'react';
-import { Check, Star, Zap, Crown, ArrowRight, Sparkles } from 'lucide-react';
+import { Check, Star, Zap, Crown, ArrowRight, Sparkles, Clock, Globe, Bot, Users } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 
 const PricingPage = ({ onNavigateToBilling }) => {
-    const { user, isAuthenticated } = useAuth();
+    const { user, isAuthenticated, refreshUser } = useAuth();
     const [loading, setLoading] = useState(null);
+    const [showImplantationModal, setShowImplantationModal] = useState(false);
+    const [upgradedPlan, setUpgradedPlan] = useState('');
 
     const plans = [
         {
             id: 'basic',
             name: 'Basic',
-            price: 49,
+            price: 129,
             icon: Star,
             color: 'from-blue-500 to-cyan-500',
             shadowColor: 'shadow-blue-500/25',
             features: [
-                '100 leads por mês',
-                '1 usuário',
-                'Inbox básico (WhatsApp)',
-                'Dashboard de métricas',
-                'Suporte por email'
+                { text: '50 leads por mês', icon: Users },
+                { text: 'Website profissional com manutenção', icon: Globe },
+                { text: 'Agente autônomo captador de leads', icon: Bot },
+                { text: 'Inbox WhatsApp (Evolution)', icon: Sparkles },
+                { text: 'Dashboard de métricas', icon: null },
+                { text: 'Suporte por email', icon: null }
             ],
             popular: false
         },
         {
             id: 'pro',
             name: 'Pro',
-            price: 99,
+            price: 259,
             icon: Zap,
             color: 'from-purple-500 to-pink-500',
             shadowColor: 'shadow-purple-500/25',
             features: [
-                '500 leads por mês',
-                'Até 3 usuários',
-                'Inbox completo',
-                'Marketing (Campanhas)',
-                'Integrações (Canva, Meta)',
-                'Relatórios avançados',
-                'Suporte prioritário'
+                { text: '150 leads por mês', icon: Users },
+                { text: 'Website + Landing Pages ilimitadas', icon: Globe },
+                { text: 'Agente autônomo avançado', icon: Bot },
+                { text: 'Inbox completo + automações', icon: Sparkles },
+                { text: 'Até 3 usuários', icon: null },
+                { text: 'Marketing (Campanhas)', icon: null },
+                { text: 'Integrações (Canva, Meta Ads)', icon: null },
+                { text: 'Relatórios avançados', icon: null },
+                { text: 'Suporte prioritário', icon: null }
             ],
             popular: true
         },
         {
             id: 'enterprise',
             name: 'Enterprise',
-            price: 199,
+            price: 399,
             icon: Crown,
             color: 'from-amber-500 to-orange-500',
             shadowColor: 'shadow-amber-500/25',
             features: [
-                'Leads ilimitados',
-                'Usuários ilimitados',
-                'Todas as funcionalidades',
-                'API completa',
-                'White-label disponível',
-                'Gerente de conta dedicado',
-                'SLA garantido',
-                'Treinamento incluso'
+                { text: 'Leads ilimitados', icon: Users },
+                { text: 'Websites + Apps ilimitados', icon: Globe },
+                { text: 'Agente IA personalizado', icon: Bot },
+                { text: 'Todas as automações', icon: Sparkles },
+                { text: 'Usuários ilimitados', icon: null },
+                { text: 'API completa', icon: null },
+                { text: 'White-label disponível', icon: null },
+                { text: 'Gerente de conta dedicado', icon: null },
+                { text: 'SLA garantido 99.9%', icon: null },
+                { text: 'Treinamento incluso', icon: null }
             ],
             popular: false
         }
@@ -65,7 +72,6 @@ const PricingPage = ({ onNavigateToBilling }) => {
 
     const handleSubscribe = async (planId) => {
         if (!isAuthenticated) {
-            // Redireciona para login
             return;
         }
 
@@ -77,7 +83,11 @@ const PricingPage = ({ onNavigateToBilling }) => {
             if (response.data.demo) {
                 // Modo demo - simula upgrade
                 await api.post('/stripe/demo-upgrade', { plan: planId });
-                onNavigateToBilling?.();
+                await refreshUser();
+
+                // Mostra modal de implantação
+                setUpgradedPlan(planId);
+                setShowImplantationModal(true);
             } else if (response.data.url) {
                 // Redireciona para Stripe Checkout
                 window.location.href = response.data.url;
@@ -90,6 +100,11 @@ const PricingPage = ({ onNavigateToBilling }) => {
     };
 
     const currentPlan = user?.subscription?.plan || 'free';
+
+    const getPlanName = (id) => {
+        const plan = plans.find(p => p.id === id);
+        return plan?.name || id;
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-16 px-4">
@@ -107,10 +122,10 @@ const PricingPage = ({ onNavigateToBilling }) => {
                         Escolha seu plano
                     </div>
                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                        Preços simples e transparentes
+                        Potencialize sua Corretora
                     </h1>
                     <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-                        Escolha o plano ideal para o tamanho da sua corretora. Sem taxas ocultas.
+                        Website, Agente Autônomo e CRM completo em um só lugar. Sem taxas ocultas.
                     </p>
                 </div>
 
@@ -153,10 +168,13 @@ const PricingPage = ({ onNavigateToBilling }) => {
                                 <ul className="space-y-4 mb-8">
                                     {plan.features.map((feature, idx) => (
                                         <li key={idx} className="flex items-start gap-3">
-                                            <div className={`p-1 rounded-full bg-gradient-to-br ${plan.color}`}>
+                                            <div className={`p-1 rounded-full bg-gradient-to-br ${plan.color} shrink-0`}>
                                                 <Check className="w-3 h-3 text-white" />
                                             </div>
-                                            <span className="text-slate-300 text-sm">{feature}</span>
+                                            <span className="text-slate-300 text-sm">
+                                                {feature.icon && <feature.icon className="inline w-4 h-4 mr-1.5 text-slate-400" />}
+                                                {feature.text}
+                                            </span>
                                         </li>
                                     ))}
                                 </ul>
@@ -188,7 +206,7 @@ const PricingPage = ({ onNavigateToBilling }) => {
                     })}
                 </div>
 
-                {/* FAQ / Garantia */}
+                {/* Garantia */}
                 <div className="mt-16 text-center">
                     <div className="inline-flex items-center gap-4 px-6 py-3 bg-slate-800/50 border border-slate-700/50 rounded-2xl">
                         <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center">
@@ -201,6 +219,54 @@ const PricingPage = ({ onNavigateToBilling }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal de Implantação */}
+            {showImplantationModal && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl border border-slate-700 p-8 max-w-md w-full shadow-2xl animate-fade-in">
+                        <div className="text-center">
+                            {/* Icon */}
+                            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/25 animate-bounce">
+                                <Check className="w-10 h-10 text-white" />
+                            </div>
+
+                            {/* Title */}
+                            <h2 className="text-2xl font-bold text-white mb-2">
+                                Parabéns! 🎉
+                            </h2>
+                            <p className="text-lg text-slate-300 mb-6">
+                                Você assinou o plano <span className="text-purple-400 font-semibold">{getPlanName(upgradedPlan)}</span>
+                            </p>
+
+                            {/* Implantation Notice */}
+                            <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-5 mb-6">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <Clock className="w-6 h-6 text-amber-500" />
+                                    <h3 className="font-semibold text-amber-400">Implantação em Andamento</h3>
+                                </div>
+                                <p className="text-slate-300 text-sm text-left">
+                                    Nossa equipe está configurando seu <strong>website</strong> e <strong>agente autônomo</strong>.
+                                    O processo leva até <span className="text-amber-400 font-semibold">48 horas úteis</span>.
+                                </p>
+                                <p className="text-slate-400 text-sm mt-2 text-left">
+                                    Você receberá um email quando tudo estiver pronto!
+                                </p>
+                            </div>
+
+                            {/* Button */}
+                            <button
+                                onClick={() => {
+                                    setShowImplantationModal(false);
+                                    onNavigateToBilling?.();
+                                }}
+                                className="w-full py-4 bg-gradient-to-r from-purple-500 to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 hover:shadow-xl hover:scale-[1.02] transition-all"
+                            >
+                                Entendido, obrigado!
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

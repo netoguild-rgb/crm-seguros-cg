@@ -15,9 +15,13 @@ import {
     Star,
     Clock,
     MessageCircle,
-    RefreshCw
+    RefreshCw,
+    Lock,
+    Sparkles,
+    ArrowRight
 } from 'lucide-react';
 import { getConversations, getConversation, sendMessage as apiSendMessage, markConversationAsRead } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 // Mock data para fallback quando API vazia
 const mockConversations = [
@@ -41,7 +45,8 @@ const mockMessages = {
     4: [{ id: 1, text: 'Vou analisar a proposta', isFromMe: false, timestamp: new Date(), status: 'read' }],
 };
 
-function InboxPage() {
+function InboxPage({ onNavigateToPricing }) {
+    const { user } = useAuth();
     const [conversations, setConversations] = useState([]);
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [messages, setMessages] = useState({});
@@ -50,6 +55,10 @@ function InboxPage() {
     const [filter, setFilter] = useState('all');
     const [loading, setLoading] = useState(true);
     const [useMock, setUseMock] = useState(false);
+
+    // Verifica se usuário tem plano pago (basic, pro, enterprise)
+    const userPlan = user?.subscription?.plan || 'free';
+    const hasPaidPlan = ['basic', 'pro', 'enterprise'].includes(userPlan);
 
     // Carregar conversas da API
     useEffect(() => {
@@ -111,7 +120,7 @@ function InboxPage() {
     });
 
     const handleSendMessage = async () => {
-        if (!newMessage.trim() || !selectedConversation) return;
+        if (!newMessage.trim() || !selectedConversation || !hasPaidPlan) return;
 
         const newMsg = {
             id: Date.now(),
@@ -178,9 +187,51 @@ function InboxPage() {
     };
 
     return (
-        <div className="h-full flex flex-col animate-fade-in">
+        <div className="h-full flex flex-col animate-fade-in relative">
+            {/* Overlay para plano free */}
+            {!hasPaidPlan && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center">
+                    {/* Blur background */}
+                    <div className="absolute inset-0 backdrop-blur-md bg-slate-900/40"></div>
+
+                    {/* Content */}
+                    <div className="relative bg-white rounded-3xl shadow-2xl p-8 max-w-md mx-4 text-center animate-fade-in">
+                        <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/25">
+                            <Lock size={36} className="text-white" />
+                        </div>
+
+                        <h2 className="text-2xl font-bold text-slate-800 mb-3">
+                            Recurso Premium
+                        </h2>
+
+                        <p className="text-slate-600 mb-6">
+                            O <strong>Agente Autônomo de WhatsApp</strong> está disponível a partir do plano <span className="text-purple-600 font-semibold">Basic</span>.
+                            Automatize o atendimento e capture leads 24/7!
+                        </p>
+
+                        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-4 mb-6 border border-purple-100">
+                            <div className="flex items-center gap-3 text-left">
+                                <Sparkles className="w-8 h-8 text-purple-500 shrink-0" />
+                                <div>
+                                    <p className="font-semibold text-slate-800">Plano Basic - R$ 129/mês</p>
+                                    <p className="text-sm text-slate-600">Agente + Website + 50 leads/mês</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={onNavigateToPricing}
+                            className="w-full py-4 bg-gradient-to-r from-purple-500 to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                        >
+                            Ver Planos
+                            <ArrowRight size={20} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Header */}
-            <div className="mb-6">
+            <div className={`mb-6 ${!hasPaidPlan ? 'pointer-events-none' : ''}`}>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-3 rounded-xl shadow-lg">
@@ -201,7 +252,7 @@ function InboxPage() {
             </div>
 
             {/* Main Chat Container */}
-            <div className="flex-1 glass-card rounded-2xl overflow-hidden flex min-h-0">
+            <div className={`flex-1 glass-card rounded-2xl overflow-hidden flex min-h-0 ${!hasPaidPlan ? 'pointer-events-none' : ''}`}>
                 {/* Conversations List */}
                 <div className="w-80 border-r border-slate-200/50 flex flex-col bg-white/50">
                     {/* Search & Filters */}

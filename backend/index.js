@@ -215,20 +215,20 @@ app.get('/auth/me', authenticateToken, async (req, res) => {
 const PLANS = {
   basic: {
     name: 'Basic',
-    price: 4900, // R$ 49,00 em centavos
-    features: ['100 leads', '1 usuário', 'Inbox básico']
+    price: 12900, // R$ 129,00 em centavos
+    features: ['50 leads/mês', 'Website com manutenção', 'Agente autônomo captador', 'Inbox WhatsApp']
   },
   pro: {
     name: 'Pro',
-    price: 9900, // R$ 99,00
-    features: ['500 leads', '3 usuários', 'Marketing', 'Integrações']
+    price: 25900, // R$ 259,00
+    features: ['150 leads/mês', 'Website + Landing Pages', 'Agente avançado', '3 usuários', 'Marketing']
   },
   enterprise: {
     name: 'Enterprise',
-    price: 19900, // R$ 199,00
-    features: ['Leads ilimitados', 'Usuários ilimitados', 'API', 'Suporte prioritário']
+    price: 39900, // R$ 399,00
+    features: ['Leads ilimitados', 'Websites ilimitados', 'Agente IA personalizado', 'Usuários ilimitados', 'API']
   }
-};
+};;
 
 // GET /stripe/plans - Lista planos disponíveis
 app.get('/stripe/plans', (req, res) => {

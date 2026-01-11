@@ -521,7 +521,7 @@ function CRMContent() {
             </div>
           )}
 
-          {view === 'inbox' && <InboxPage />}
+          {view === 'inbox' && <InboxPage onNavigateToPricing={() => setView('pricing')} />}
           {view === 'marketing' && <MarketingPage />}
           {view === 'services' && <ServicesPage />}
         </div>
