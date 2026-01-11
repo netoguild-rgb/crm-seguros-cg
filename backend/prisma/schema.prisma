@@ -39,3 +39,126 @@ model Config {
   
   updatedAt           DateTime @updatedAt
 }
+
+// ============================================
+// INBOX - Mensagens WhatsApp via Evolution API
+// ============================================
+
+model Conversation {
+  id          Int       @id @default(autoincrement())
+  remoteJid   String    @unique // Número WhatsApp no formato 5511999999999@s.whatsapp.net
+  name        String?
+  phone       String
+  avatarUrl   String?
+  isOnline    Boolean   @default(false)
+  unreadCount Int       @default(0)
+  lastMessage String?
+  lastMessageAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  messages    Message[]
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  messageId      String?      @unique // ID da mensagem do WhatsApp
+  text           String
+  isFromMe       Boolean      @default(false)
+  status         String       @default("sent") // sent, delivered, read
+  timestamp      DateTime     @default(now())
+  
+  createdAt      DateTime     @default(now())
+}
+
+// ============================================
+// MARKETING - Campanhas e Templates
+// ============================================
+
+model Campaign {
+  id          Int       @id @default(autoincrement())
+  name        String
+  type        String    // Promoção, Institucional, Seguro Auto, etc
+  status      String    @default("active") // active, paused, ended
+  startDate   DateTime
+  endDate     DateTime?
+  
+  // Métricas
+  views       Int       @default(0)
+  engagement  Float     @default(0)
+  leads       Int       @default(0)
+  
+  imageUrl    String?
+  description String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Template {
+  id          Int       @id @default(autoincrement())
+  name        String
+  category    String    // Auto, Vida, Residencial, Saúde, Especial, Social
+  icon        String?   // Emoji do template
+  gradient    String?   // Classe CSS do gradiente
+  content     String?   // Conteúdo do template (HTML ou texto)
+  imageUrl    String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ============================================
+// SERVIÇOS - Posts e Tráfego Pago
+// ============================================
+
+model Post {
+  id          Int       @id @default(autoincrement())
+  title       String
+  content     String?
+  platform    String    // Instagram, Facebook, LinkedIn, etc
+  status      String    @default("draft") // draft, scheduled, published
+  scheduledAt DateTime?
+  publishedAt DateTime?
+  
+  // Métricas
+  views       Int       @default(0)
+  likes       Int       @default(0)
+  shares      Int       @default(0)
+  
+  imageUrl    String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model TrafficData {
+  id            Int       @id @default(autoincrement())
+  platform      String    // google, meta
+  period        String    // 2026-01, etc (para agrupar por mês)
+  
+  spend         Float     @default(0)
+  clicks        Int       @default(0)
+  impressions   Int       @default(0)
+  ctr           Float     @default(0)
+  conversions   Int       @default(0)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@unique([platform, period])
+}
+
+model Activity {
+  id          Int       @id @default(autoincrement())
+  action      String
+  icon        String?   // send, eye, user, calendar
+  color       String?   // text-green-600, etc
+  relatedId   Int?      // ID do item relacionado (post, campaign, etc)
+  relatedType String?   // post, campaign, lead
+  
+  createdAt   DateTime  @default(now())
+}

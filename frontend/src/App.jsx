@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown, X, MessageCircle, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown, X, MessageCircle, Sparkles, Inbox, Megaphone, Briefcase } from 'lucide-react';
 import { getLeads, updateLeadStatus, deleteLead, getConfig } from './services/api';
 
 // --- COMPONENTES ---
@@ -10,6 +10,9 @@ import WhatsAppModal from './components/WhatsAppModal';
 import Dashboard from './components/Dashboard';
 import ConfigPage from './components/ConfigPage';
 import Logo from './components/Logo';
+import InboxPage from './components/InboxPage';
+import MarketingPage from './components/MarketingPage';
+import ServicesPage from './components/ServicesPage';
 import { ToastProvider, useToast } from './components/Toast';
 
 // --- UTILITÁRIOS ---
@@ -187,6 +190,17 @@ function AppContent() {
           <nav className="flex-1 py-6 px-2 space-y-1 overflow-y-auto">
             <MenuItem icon={LayoutDashboard} label="Visão Geral" active={view === 'kanban'} onClick={() => setView('kanban')} collapsed={!sidebarOpen} />
             <MenuItem icon={Users} label="Lista de Leads" active={view === 'list'} onClick={() => setView('list')} collapsed={!sidebarOpen} />
+            <MenuItem icon={Inbox} label="Inbox" active={view === 'inbox'} onClick={() => setView('inbox')} collapsed={!sidebarOpen} />
+
+            {/* Divider */}
+            <div className="my-3 mx-4 border-t border-white/10"></div>
+
+            <MenuItem icon={Megaphone} label="Marketing" active={view === 'marketing'} onClick={() => setView('marketing')} collapsed={!sidebarOpen} />
+            <MenuItem icon={Briefcase} label="Serviços" active={view === 'services'} onClick={() => setView('services')} collapsed={!sidebarOpen} />
+
+            {/* Divider */}
+            <div className="my-3 mx-4 border-t border-white/10"></div>
+
             <MenuItem icon={Settings} label="Configurações" active={view === 'config'} onClick={() => setView('config')} collapsed={!sidebarOpen} />
           </nav>
 
@@ -249,7 +263,7 @@ function AppContent() {
 
         {/* Filter Bar */}
         {
-          view !== 'config' && (
+          (view === 'kanban' || view === 'list') && (
             <div className="bg-white/60 backdrop-blur-sm border-b border-slate-200/50 px-6 py-3 flex gap-3 items-center overflow-x-auto z-10">
               <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mr-2">
                 <Filter size={14} />
@@ -398,6 +412,10 @@ function AppContent() {
               )}
             </div>
           )}
+
+          {view === 'inbox' && <InboxPage />}
+          {view === 'marketing' && <MarketingPage />}
+          {view === 'services' && <ServicesPage />}
         </div>
       </main >
 
