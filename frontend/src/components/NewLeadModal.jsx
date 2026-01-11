@@ -1,11 +1,11 @@
 // ARQUIVO: frontend/src/components/NewLeadModal.jsx
 import React, { useState } from 'react';
-import { X, Save, User, Car, Shield, FileText, FolderPlus } from 'lucide-react';
+import { X, Save, User, Car, Shield, FileText, FolderPlus, CheckCircle, ChevronRight } from 'lucide-react';
 import { createLead } from '../services/api';
 
 const NewLeadModal = ({ onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('pessoal'); 
+  const [activeTab, setActiveTab] = useState('pessoal');
 
   const [formData, setFormData] = useState({
     nome: '', whatsapp: '', email: '', cpf: '', profissao: '',
@@ -15,150 +15,254 @@ const NewLeadModal = ({ onClose, onSuccess }) => {
     link_pasta: '', obs_final: ''
   });
 
+  const tabs = [
+    { id: 'pessoal', label: 'Pessoal', icon: User },
+    { id: 'veiculo', label: 'Veículo', icon: Car },
+    { id: 'seguro', label: 'Coberturas', icon: Shield },
+    { id: 'extra', label: 'Extras', icon: FileText },
+  ];
+
+  const currentTabIndex = tabs.findIndex(t => t.id === activeTab);
+
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     setLoading(true);
     try {
       await createLead({ ...formData, status: 'NOVO' });
       onSuccess();
-      onClose();
     } catch (error) {
-      alert('Erro ao criar lead.');
+      console.error('Erro ao criar lead:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  const nextTab = () => {
+    const nextIndex = currentTabIndex + 1;
+    if (nextIndex < tabs.length) {
+      setActiveTab(tabs[nextIndex].id);
+    }
+  };
+
+  const prevTab = () => {
+    const prevIndex = currentTabIndex - 1;
+    if (prevIndex >= 0) {
+      setActiveTab(tabs[prevIndex].id);
+    }
+  };
+
   const Input = ({ label, name, type = "text", placeholder, required = false }) => (
-    <div className="flex flex-col gap-1 mb-2">
-      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+    <div className="flex flex-col gap-1.5 mb-3">
+      <label className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center gap-1">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
-      <input 
+      <input
         required={required}
-        type={type} 
-        name={name} 
-        value={formData[name]} 
+        type={type}
+        name={name}
+        value={formData[name]}
         onChange={handleChange}
         placeholder={placeholder}
-        className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:ring-1 focus:ring-crm-500 focus:border-crm-500 outline-none transition bg-white text-slate-800"
+        className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none transition-all bg-white text-slate-800 hover:border-slate-300 shadow-sm"
       />
     </div>
   );
 
   return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-float w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-fade-in border border-slate-200">
-        
-        {/* Header Style Salesforce */}
-        <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-white">
-          <div className="flex items-center gap-3">
-             <div className="bg-crm-500 p-2 rounded text-white"><User size={20}/></div>
-             <div>
-                <h2 className="text-lg font-bold text-slate-800 leading-tight">Novo Lead</h2>
-                <p className="text-xs text-slate-500">Preencha os dados para criar um novo registro.</p>
-             </div>
+    <div className="modal-overlay" onClick={onClose}>
+      <div
+        className="modal-content w-full max-w-3xl flex flex-col"
+        onClick={e => e.stopPropagation()}
+      >
+
+        {/* Header */}
+        <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-gradient-to-r from-white to-slate-50">
+          <div className="flex items-center gap-4">
+            <div className="bg-gradient-to-br from-crm-500 to-accent-purple p-3 rounded-xl text-white shadow-lg">
+              <User size={24} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-800 leading-tight">Novo Lead</h2>
+              <p className="text-sm text-slate-500">Preencha os dados para criar um novo registro</p>
+            </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-50 rounded transition"><X size={20}/></button>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 p-2.5 hover:bg-slate-100 rounded-xl transition-all"
+          >
+            <X size={22} />
+          </button>
         </div>
 
-        {/* Tabs Underline */}
-        <div className="flex px-6 border-b border-slate-200 bg-white">
-          {[
-            { id: 'pessoal', label: 'Dados Pessoais' },
-            { id: 'veiculo', label: 'Veículo' },
-            { id: 'seguro', label: 'Coberturas' },
-            { id: 'extra', label: 'Arquivos & Obs' },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`py-3 px-4 text-sm font-bold border-b-2 transition-colors
-                ${activeTab === tab.id ? 'border-crm-500 text-crm-500' : 'border-transparent text-slate-500 hover:text-crm-500'}`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* Progress Bar */}
+        <div className="px-6 py-4 bg-white border-b border-slate-100">
+          <div className="flex items-center justify-between mb-3">
+            {tabs.map((tab, index) => {
+              const Icon = tab.icon;
+              const isActive = tab.id === activeTab;
+              const isCompleted = index < currentTabIndex;
+
+              return (
+                <React.Fragment key={tab.id}>
+                  <button
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${isActive
+                        ? 'bg-gradient-to-r from-crm-500 to-accent-purple text-white shadow-lg'
+                        : isCompleted
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                      }`}
+                  >
+                    {isCompleted ? (
+                      <CheckCircle size={18} />
+                    ) : (
+                      <Icon size={18} />
+                    )}
+                    <span className="text-sm font-bold hidden sm:inline">{tab.label}</span>
+                  </button>
+                  {index < tabs.length - 1 && (
+                    <div className={`h-0.5 flex-1 mx-2 rounded-full transition-colors duration-300 ${index < currentTabIndex ? 'bg-emerald-400' : 'bg-slate-200'
+                      }`} />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 bg-crm-50/50">
-          
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 bg-gradient-to-b from-slate-50 to-white max-h-[50vh]">
+
           {activeTab === 'pessoal' && (
-            <div className="bg-white p-4 rounded border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
-              <Input label="Nome Completo" name="nome" placeholder="Ex: João da Silva" required />
+            <div className="glass-card p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
+              <div className="sm:col-span-2">
+                <Input label="Nome Completo" name="nome" placeholder="Ex: João da Silva" required />
+              </div>
               <Input label="WhatsApp" name="whatsapp" placeholder="Ex: 83999999999" required />
-              <Input label="E-mail" name="email" type="email" />
-              <Input label="CPF" name="cpf" />
-              <Input label="Profissão" name="profissao" />
+              <Input label="E-mail" name="email" type="email" placeholder="email@exemplo.com" />
+              <Input label="CPF" name="cpf" placeholder="000.000.000-00" />
+              <Input label="Profissão" name="profissao" placeholder="Ex: Empresário" />
             </div>
           )}
 
           {activeTab === 'veiculo' && (
-            <div className="bg-white p-4 rounded border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
-              <Input label="Modelo do Veículo" name="modelo_veiculo" />
-              <Input label="Placa" name="placa" />
-              <Input label="Ano do Veículo" name="ano_do_veiculo" />
-              <Input label="Renavam" name="renavan" />
-              <div className="sm:col-span-2 flex flex-col gap-1 mb-2">
-                 <label className="text-[11px] font-bold text-slate-500 uppercase">Uso do Veículo</label>
-                 <select name="uso_veiculo" value={formData.uso_veiculo} onChange={handleChange} className="w-full px-3 py-2 border border-slate-300 rounded text-sm bg-white focus:ring-1 focus:ring-crm-500 outline-none">
-                    <option value="">Selecione...</option>
-                    <option value="Passeio">Passeio</option>
-                    <option value="Aplicativo">Aplicativo (Uber)</option>
-                    <option value="Comercial">Comercial</option>
-                 </select>
+            <div className="glass-card p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
+              <Input label="Modelo do Veículo" name="modelo_veiculo" placeholder="Ex: Honda Civic 2023" />
+              <Input label="Placa" name="placa" placeholder="ABC-1234" />
+              <Input label="Ano do Veículo" name="ano_do_veiculo" placeholder="2023" />
+              <Input label="Renavam" name="renavan" placeholder="00000000000" />
+              <div className="sm:col-span-2 flex flex-col gap-1.5 mb-3">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Uso do Veículo</label>
+                <select
+                  name="uso_veiculo"
+                  value={formData.uso_veiculo}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none cursor-pointer hover:border-slate-300 shadow-sm transition-all"
+                >
+                  <option value="">Selecione...</option>
+                  <option value="Passeio">Passeio</option>
+                  <option value="Aplicativo">Aplicativo (Uber)</option>
+                  <option value="Comercial">Comercial</option>
+                </select>
               </div>
             </div>
           )}
 
           {activeTab === 'seguro' && (
-            <div className="bg-white p-4 rounded border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
-               <div className="sm:col-span-2 flex flex-col gap-1 mb-2">
-                 <label className="text-[11px] font-bold text-slate-500 uppercase">Tipo de Seguro</label>
-                 <select name="tipo_seguro" value={formData.tipo_seguro} onChange={handleChange} className="w-full px-3 py-2 border border-slate-300 rounded text-sm bg-white font-bold text-crm-600 focus:ring-1 focus:ring-crm-500 outline-none">
-                    <option value="Seguro Auto">Seguro Auto</option>
-                    <option value="Seguro Moto">Seguro Moto</option>
-                    <option value="Seguro Vida">Seguro Vida</option>
-                    <option value="Plano de Saúde">Plano de Saúde</option>
-                    <option value="Residencial">Residencial</option>
-                 </select>
+            <div className="glass-card p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
+              <div className="sm:col-span-2 flex flex-col gap-1.5 mb-3">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Tipo de Seguro</label>
+                <select
+                  name="tipo_seguro"
+                  value={formData.tipo_seguro}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white font-bold text-crm-600 focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none cursor-pointer hover:border-slate-300 shadow-sm transition-all"
+                >
+                  <option value="Seguro Auto">🚗 Seguro Auto</option>
+                  <option value="Seguro Moto">🏍️ Seguro Moto</option>
+                  <option value="Seguro Vida">❤️ Seguro Vida</option>
+                  <option value="Plano de Saúde">🏥 Plano de Saúde</option>
+                  <option value="Residencial">🏠 Residencial</option>
+                </select>
               </div>
-              <Input label="Cobertura Terceiros (R$)" name="cobertura_terceiros" />
-              <Input label="Cobertura Roubo" name="cobertura_roubo" />
+              <Input label="Cobertura Terceiros (R$)" name="cobertura_terceiros" placeholder="Ex: R$ 100.000" />
+              <Input label="Cobertura Roubo" name="cobertura_roubo" placeholder="Sim/Não" />
             </div>
           )}
 
           {activeTab === 'extra' && (
             <div className="space-y-4 animate-fade-in">
-              <div className="p-4 bg-white border border-slate-200 rounded shadow-sm">
-                <h4 className="font-bold text-slate-700 text-sm mb-3 flex items-center gap-2">
-                    <FolderPlus size={16} className="text-crm-500"/> Link Externo (Drive/Dropbox)
+              <div className="glass-card p-5 rounded-2xl">
+                <h4 className="font-bold text-slate-700 text-sm mb-4 flex items-center gap-2">
+                  <FolderPlus size={18} className="text-crm-500" /> Link Externo (Drive/Dropbox)
                 </h4>
-                <Input name="link_pasta" placeholder="https://..." />
+                <Input name="link_pasta" placeholder="https://drive.google.com/..." />
               </div>
-              <div className="p-4 bg-white border border-slate-200 rounded shadow-sm">
-                 <label className="text-[11px] font-bold text-slate-500 uppercase mb-1 block">Observações Finais</label>
-                 <textarea 
-                    name="obs_final" 
-                    value={formData.obs_final} 
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:ring-1 focus:ring-crm-500 outline-none h-24 resize-none"
-                    placeholder="Detalhes adicionais..."
-                 />
+              <div className="glass-card p-5 rounded-2xl">
+                <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Observações Finais</label>
+                <textarea
+                  name="obs_final"
+                  value={formData.obs_final}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none h-28 resize-none hover:border-slate-300 shadow-sm transition-all"
+                  placeholder="Detalhes adicionais sobre o lead..."
+                />
               </div>
             </div>
           )}
         </form>
 
         {/* Footer */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded text-sm font-bold transition">Cancelar</button>
-          <button onClick={handleSubmit} disabled={loading} className="px-5 py-2 bg-crm-500 hover:bg-crm-600 text-white rounded text-sm shadow-sm flex items-center gap-2 font-bold transition">
-            {loading ? 'Salvando...' : 'Salvar Lead'}
-          </button>
+        <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center gap-3">
+          <div>
+            {currentTabIndex > 0 && (
+              <button
+                type="button"
+                onClick={prevTab}
+                className="px-5 py-2.5 text-slate-600 hover:bg-slate-200 rounded-xl text-sm font-bold transition-all"
+              >
+                ← Voltar
+              </button>
+            )}
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 text-slate-600 hover:bg-slate-200 rounded-xl text-sm font-bold transition-all"
+            >
+              Cancelar
+            </button>
+            {currentTabIndex < tabs.length - 1 ? (
+              <button
+                type="button"
+                onClick={nextTab}
+                className="px-6 py-2.5 bg-gradient-to-r from-crm-500 to-accent-purple hover:shadow-glow text-white rounded-xl text-sm shadow-lg flex items-center gap-2 font-bold transition-all hover:-translate-y-0.5"
+              >
+                Próximo <ChevronRight size={16} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading}
+                className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:shadow-glow-success text-white rounded-xl text-sm shadow-lg flex items-center gap-2 font-bold transition-all hover:-translate-y-0.5 disabled:opacity-50"
+              >
+                {loading ? (
+                  <>
+                    <div className="loading-spinner w-4 h-4 border-2" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save size={16} /> Criar Lead
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
 
       </div>
