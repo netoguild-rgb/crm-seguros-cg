@@ -22,7 +22,8 @@ import {
     XCircle,
     BarChart3,
     Zap,
-    RefreshCw
+    RefreshCw,
+    ShoppingBag
 } from 'lucide-react';
 import { getCampaigns, createCampaign, getTemplates } from '../services/api';
 
@@ -35,15 +36,15 @@ const mockCampaigns = [
 ];
 
 const mockTemplates = [
-    { id: 1, name: 'Promoção Veículo', icon: '🚗', gradient: 'from-blue-500 to-cyan-500', category: 'Auto' },
-    { id: 2, name: 'Seguro Vida', icon: '❤️', gradient: 'from-red-500 to-pink-500', category: 'Vida' },
-    { id: 3, name: 'Datas Comemorativas', icon: '🎉', gradient: 'from-amber-500 to-orange-500', category: 'Especial' },
-    { id: 4, name: 'Residencial', icon: '🏠', gradient: 'from-emerald-500 to-green-500', category: 'Residencial' },
-    { id: 5, name: 'Saúde', icon: '💊', gradient: 'from-purple-500 to-indigo-500', category: 'Saúde' },
-    { id: 6, name: 'Stories', icon: '📱', gradient: 'from-pink-500 to-rose-500', category: 'Social' },
+    { id: 1, name: 'Promoção Veículo', icon: '🚗', gradient: 'from-blue-500 to-cyan-500', category: 'Auto', key: 'auto' },
+    { id: 2, name: 'Seguro Vida', icon: '❤️', gradient: 'from-red-500 to-pink-500', category: 'Vida', key: 'vida' },
+    { id: 3, name: 'Datas Comemorativas', icon: '🎉', gradient: 'from-amber-500 to-orange-500', category: 'Especial', key: 'especial' },
+    { id: 4, name: 'Residencial', icon: '🏠', gradient: 'from-emerald-500 to-green-500', category: 'Residencial', key: 'residencial' },
+    { id: 5, name: 'Saúde', icon: '💊', gradient: 'from-purple-500 to-indigo-500', category: 'Saúde', key: 'saude' },
+    { id: 6, name: 'Stories', icon: '📱', gradient: 'from-pink-500 to-rose-500', category: 'Social', key: 'social' },
 ];
 
-function MarketingPage() {
+function MarketingPage({ onNavigateToMarketplace }) {
     const [campaigns, setCampaigns] = useState([]);
     const [templates, setTemplates] = useState([]);
     const [selectedFilter, setSelectedFilter] = useState('all');
@@ -181,8 +182,12 @@ function MarketingPage() {
                         <Palette size={20} className="text-slate-600" />
                         <h2 className="text-lg font-bold text-slate-800">Templates Prontos</h2>
                     </div>
-                    <button className="text-sm text-crm-600 hover:text-crm-700 font-semibold flex items-center gap-1">
-                        Ver todos <ChevronRight size={16} />
+                    <button
+                        onClick={() => onNavigateToMarketplace?.()}
+                        className="text-sm text-crm-600 hover:text-crm-700 font-semibold flex items-center gap-1 px-3 py-1.5 bg-crm-50 hover:bg-crm-100 rounded-lg transition-colors"
+                    >
+                        <ShoppingBag size={14} />
+                        Ver Marketplace <ChevronRight size={16} />
                     </button>
                 </div>
 
@@ -190,6 +195,7 @@ function MarketingPage() {
                     {templates.map((template) => (
                         <div
                             key={template.id}
+                            onClick={() => onNavigateToMarketplace?.(template.key)}
                             className="group cursor-pointer"
                         >
                             <div className={`aspect-square bg-gradient-to-br ${template.gradient || template.color} rounded-xl flex flex-col items-center justify-center p-4 transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg`}>
@@ -200,12 +206,16 @@ function MarketingPage() {
                         </div>
                     ))}
 
-                    {/* Add New Template */}
-                    <div className="group cursor-pointer">
-                        <div className="aspect-square bg-slate-100 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center p-4 transition-all duration-300 group-hover:border-crm-500 group-hover:bg-crm-50">
-                            <Plus size={32} className="text-slate-400 group-hover:text-crm-500 transition-colors" />
-                            <span className="text-slate-400 group-hover:text-crm-600 text-xs font-semibold text-center mt-2">Criar Novo</span>
+                    {/* Add New Template - Marketplace Button */}
+                    <div
+                        onClick={() => onNavigateToMarketplace?.()}
+                        className="group cursor-pointer"
+                    >
+                        <div className="aspect-square bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex flex-col items-center justify-center p-4 transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg">
+                            <ShoppingBag size={32} className="text-white/80 mb-2" />
+                            <span className="text-white text-xs font-semibold text-center">Marketplace</span>
                         </div>
+                        <p className="text-xs text-slate-500 text-center mt-2">Ver todos</p>
                     </div>
                 </div>
             </div>

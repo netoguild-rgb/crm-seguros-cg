@@ -17,6 +17,7 @@ import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import PricingPage from './components/PricingPage';
 import BillingPage from './components/BillingPage';
+import TemplatesMarketplacePage from './components/TemplatesMarketplacePage';
 import { ToastProvider, useToast } from './components/Toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
@@ -54,6 +55,7 @@ function CRMContent() {
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [selectedLeadsIds, setSelectedLeadsIds] = useState([]);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [marketplaceCategory, setMarketplaceCategory] = useState(null);
 
   useEffect(() => {
     fetchLeads();
@@ -543,7 +545,8 @@ function CRMContent() {
           )}
 
           {view === 'inbox' && <InboxPage onNavigateToPricing={() => setView('pricing')} />}
-          {view === 'marketing' && <MarketingPage />}
+          {view === 'marketing' && <MarketingPage onNavigateToMarketplace={(category) => { setView('templates-marketplace'); if (category) setMarketplaceCategory(category); }} />}
+          {view === 'templates-marketplace' && <TemplatesMarketplacePage onBack={() => setView('marketing')} initialCategory={marketplaceCategory} />}
           {view === 'services' && <ServicesPage />}
         </div>
       </main >
