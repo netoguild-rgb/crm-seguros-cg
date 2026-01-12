@@ -106,4 +106,19 @@ export const createPolicy = (data) => api.post('/policies', data);
 export const updatePolicy = (id, data) => api.put(`/policies/${id}`, data);
 export const deletePolicy = (id) => api.delete(`/policies/${id}`);
 
+// ============================================
+// ADMIN (Superadmin)
+// ============================================
+export const getAdminStats = () => api.get('/admin/stats');
+export const getAdminUsers = (params) => api.get('/admin/users', { params });
+export const getAdminUserById = (id) => api.get(`/admin/users/${id}`);
+export const updateUserPlan = (id, plan) => api.put(`/admin/users/${id}/plan`, { plan });
+export const updateUserRole = (id, role) => api.put(`/admin/users/${id}/role`, { role });
+export const deleteAdminUser = (id) => api.delete(`/admin/users/${id}`);
+
+// ============================================
+// LIMITES DO USUÁRIO
+// ============================================
+export const getUserLimits = () => api.get('/user/limits');
+
 export default api;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown, X, MessageCircle, Sparkles, Inbox, Megaphone, Briefcase, CreditCard, LogOut, User, Moon, Sun, FileText } from 'lucide-react';
+import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown, X, MessageCircle, Sparkles, Inbox, Megaphone, Briefcase, CreditCard, LogOut, User, Moon, Sun, FileText, ShieldCheck } from 'lucide-react';
 import { getLeads, updateLeadStatus, deleteLead, getConfig } from './services/api';
 
 // --- COMPONENTES ---
@@ -15,6 +15,7 @@ import MarketingPage from './components/MarketingPage';
 import ServicesPage from './components/ServicesPage';
 import PoliciesPage from './components/PoliciesPage';
 import LeadsManagementPage from './components/LeadsManagementPage';
+import AdminDashboardPage from './components/AdminDashboardPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import PricingPage from './components/PricingPage';
@@ -259,6 +260,14 @@ function CRMContent() {
 
             <MenuItem icon={CreditCard} label="Planos" active={view === 'pricing'} onClick={() => setView('pricing')} collapsed={!sidebarOpen} badge={getPlanBadge()} />
             <MenuItem icon={Settings} label="Configurações" active={view === 'config'} onClick={() => setView('config')} collapsed={!sidebarOpen} />
+
+            {/* Admin - Apenas superadmin */}
+            {user?.role === 'superadmin' && (
+              <>
+                <div className="my-3 mx-4 border-t border-white/10"></div>
+                <MenuItem icon={ShieldCheck} label="Admin" active={view === 'admin'} onClick={() => setView('admin')} collapsed={!sidebarOpen} badge="Super" />
+              </>
+            )}
           </nav>
 
           {/* Footer Sidebar - Mais profissional */}
@@ -564,6 +573,7 @@ function CRMContent() {
               onRefresh={fetchLeads}
             />
           )}
+          {view === 'admin' && <AdminDashboardPage />}
         </div>
       </main >
 

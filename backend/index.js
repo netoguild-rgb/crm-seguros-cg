@@ -211,6 +211,206 @@ app.get('/auth/me', authenticateToken, async (req, res) => {
 });
 
 // ============================================
+// ADMIN - Gerenciamento de Usuários (Superadmin)
+// ============================================
+
+// GET /admin/stats - Estatísticas globais
+app.get('/admin/stats', authenticateToken, requireRole('superadmin'), async (req, res) => {
+  try {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const [totalUsers, activeSubscriptions, revenueData, newUsersThisMonth, planDistribution] = await Promise.all([
+      prisma.user.count(),
+      prisma.subscription.count({ where: { status: 'active' } }),
+      prisma.subscription.findMany({
+        where: { status: 'active', plan: { not: 'free' } },
+        select: { plan: true }
+      }),
+      prisma.user.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+      prisma.subscription.groupBy({
+        by: ['plan'],
+        _count: true
+      })
+    ]);
+
+    // Calcular MRR
+    const planPrices = { basic: 129, pro: 249, enterprise: 399 };
+    const mrr = revenueData.reduce((sum, sub) => sum + (planPrices[sub.plan] || 0), 0);
+
+    res.json({
+      totalUsers,
+      activeSubscriptions,
+      mrr,
+      newUsersThisMonth,
+      planDistribution: planDistribution.reduce((acc, item) => {
+        acc[item.plan] = item._count;
+        return acc;
+      }, {})
+    });
+  } catch (error) {
+    console.error('Erro ao buscar stats admin:', error);
+    res.status(500).json({ erro: 'Erro ao buscar estatísticas' });
+  }
+});
+
+// GET /admin/users - Listar todos os usuários
+app.get('/admin/users', authenticateToken, requireRole('superadmin'), async (req, res) => {
+  try {
+    const { search, plan, status, page = 1, limit = 20 } = req.query;
+
+    const where = {};
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    if (plan) {
+      where.subscription = { plan };
+    }
+
+    if (status) {
+      where.subscription = { ...where.subscription, status };
+    }
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        include: {
+          subscription: true,
+          _count: { select: { leads: true, policies: true } }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (parseInt(page) - 1) * parseInt(limit),
+        take: parseInt(limit)
+      }),
+      prisma.user.count({ where })
+    ]);
+
+    res.json({
+      users: users.map(u => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        plan: u.subscription?.plan || 'free',
+        status: u.subscription?.status || 'inactive',
+        leadsCount: u._count.leads,
+        policiesCount: u._count.policies,
+        createdAt: u.createdAt
+      })),
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit))
+    });
+  } catch (error) {
+    console.error('Erro ao listar usuários:', error);
+    res.status(500).json({ erro: 'Erro ao listar usuários' });
+  }
+});
+
+// GET /admin/users/:id - Detalhes do usuário
+app.get('/admin/users/:id', authenticateToken, requireRole('superadmin'), async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: {
+        subscription: true,
+        config: true,
+        _count: {
+          select: {
+            leads: true,
+            policies: true,
+            conversations: true,
+            campaigns: true
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ erro: 'Usuário não encontrado' });
+    }
+
+    res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      subscription: user.subscription,
+      config: user.config,
+      usage: user._count,
+      createdAt: user.createdAt
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao buscar usuário' });
+  }
+});
+
+// PUT /admin/users/:id/plan - Alterar plano do usuário
+app.put('/admin/users/:id/plan', authenticateToken, requireRole('superadmin'), async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const { plan } = req.body;
+
+    if (!['free', 'basic', 'pro', 'enterprise'].includes(plan)) {
+      return res.status(400).json({ erro: 'Plano inválido' });
+    }
+
+    const subscription = await prisma.subscription.upsert({
+      where: { userId },
+      update: { plan, status: plan === 'free' ? 'inactive' : 'active' },
+      create: { userId, plan, status: plan === 'free' ? 'inactive' : 'active' }
+    });
+
+    res.json({ message: 'Plano atualizado com sucesso', subscription });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao atualizar plano' });
+  }
+});
+
+// PUT /admin/users/:id/role - Alterar role do usuário
+app.put('/admin/users/:id/role', authenticateToken, requireRole('superadmin'), async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const { role } = req.body;
+
+    if (!['user', 'admin', 'superadmin'].includes(role)) {
+      return res.status(400).json({ erro: 'Role inválida' });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { role }
+    });
+
+    res.json({ message: 'Role atualizada com sucesso', user });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao atualizar role' });
+  }
+});
+
+// DELETE /admin/users/:id - Excluir usuário
+app.delete('/admin/users/:id', authenticateToken, requireRole('superadmin'), async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+
+    // Não permitir excluir a si mesmo
+    if (userId === req.user.id) {
+      return res.status(400).json({ erro: 'Você não pode excluir sua própria conta' });
+    }
+
+    await prisma.user.delete({ where: { id: userId } });
+    res.json({ message: 'Usuário excluído com sucesso' });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao excluir usuário' });
+  }
+});
+
+// ============================================
 // STRIPE - Pagamentos e Assinaturas
 // ============================================
 
