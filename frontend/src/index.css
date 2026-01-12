@@ -47,13 +47,33 @@ html.dark {
   --bg-elevated: 213 73% 16%;
   --bg-card: 30, 41, 59;
   --text-primary: 248, 250, 252;
-  --text-secondary: 148, 163, 184;
+  --text-secondary: 203, 213, 225;
+  /* Mais claro para melhor contraste */
   --border-color: 51, 65, 85;
 
   /* Glass Effect - Dark */
   --glass-bg: rgba(30, 41, 59, 0.85);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-shadow: rgba(0, 0, 0, 0.35);
+}
+
+/* Melhorar contraste global no dark mode */
+html.dark .text-slate-500 {
+  color: rgb(148, 163, 184) !important;
+  /* slate-400 */
+}
+
+html.dark .text-slate-400 {
+  color: rgb(203, 213, 225) !important;
+  /* slate-300 */
+}
+
+html.dark .text-gray-500 {
+  color: rgb(148, 163, 184) !important;
+}
+
+html.dark .text-gray-400 {
+  color: rgb(203, 213, 225) !important;
 }
 
 body {
