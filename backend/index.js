@@ -878,5 +878,216 @@ app.get('/activities', optionalAuth, async (req, res) => {
   }
 });
 
+// ============================================
+// APÓLICES - CRUD (Enterprise Only)
+// ============================================
+
+// GET /policies/stats - Estatísticas das apólices
+app.get('/policies/stats', authenticateToken, async (req, res) => {
+  try {
+    const now = new Date();
+    const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    const [total, active, pending, expired, expiringSoon, totalPremium] = await Promise.all([
+      prisma.policy.count(),
+      prisma.policy.count({ where: { status: 'active' } }),
+      prisma.policy.count({ where: { status: 'pending' } }),
+      prisma.policy.count({ where: { status: 'expired' } }),
+      prisma.policy.count({
+        where: {
+          status: 'active',
+          endDate: { gte: now, lte: thirtyDaysFromNow }
+        }
+      }),
+      prisma.policy.aggregate({
+        where: { status: 'active' },
+        _sum: { premium: true }
+      })
+    ]);
+
+    // Contagem por tipo
+    const byType = await prisma.policy.groupBy({
+      by: ['type'],
+      _count: true,
+      where: { status: 'active' }
+    });
+
+    res.json({
+      total,
+      active,
+      pending,
+      expired,
+      expiringSoon,
+      totalPremium: totalPremium._sum.premium || 0,
+      byType: byType.reduce((acc, item) => {
+        acc[item.type] = item._count;
+        return acc;
+      }, {})
+    });
+  } catch (error) {
+    console.error('Erro ao buscar stats de apólices:', error);
+    res.status(500).json({ erro: "Erro ao buscar estatísticas" });
+  }
+});
+
+// GET /policies - Listar apólices com filtros
+app.get('/policies', authenticateToken, async (req, res) => {
+  try {
+    const { status, type, search, page = 1, limit = 20 } = req.query;
+
+    const where = {};
+
+    if (status) where.status = status;
+    if (type) where.type = type;
+    if (search) {
+      where.OR = [
+        { holderName: { contains: search, mode: 'insensitive' } },
+        { holderCpf: { contains: search } },
+        { policyNumber: { contains: search, mode: 'insensitive' } },
+        { vehiclePlate: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    const [policies, total] = await Promise.all([
+      prisma.policy.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (parseInt(page) - 1) * parseInt(limit),
+        take: parseInt(limit)
+      }),
+      prisma.policy.count({ where })
+    ]);
+
+    res.json({
+      policies,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit))
+    });
+  } catch (error) {
+    console.error('Erro ao listar apólices:', error);
+    res.status(500).json({ erro: "Erro ao listar apólices" });
+  }
+});
+
+// GET /policies/:id - Buscar apólice por ID
+app.get('/policies/:id', authenticateToken, async (req, res) => {
+  try {
+    const policy = await prisma.policy.findUnique({
+      where: { id: parseInt(req.params.id) }
+    });
+
+    if (!policy) {
+      return res.status(404).json({ erro: "Apólice não encontrada" });
+    }
+
+    res.json(policy);
+  } catch (error) {
+    res.status(500).json({ erro: "Erro ao buscar apólice" });
+  }
+});
+
+// POST /policies - Criar nova apólice
+app.post('/policies', authenticateToken, async (req, res) => {
+  try {
+    const {
+      holderName, holderCpf, holderPhone, holderEmail,
+      type, premium, coverage, deductible,
+      startDate, endDate, paymentDueDay,
+      insurerName, insurerCode,
+      vehiclePlate, vehicleModel, vehicleYear,
+      propertyAddress, propertyType,
+      documentUrl, notes, leadId
+    } = req.body;
+
+    // Gerar número da apólice automaticamente
+    const year = new Date().getFullYear();
+    const count = await prisma.policy.count();
+    const policyNumber = `APL-${year}-${String(count + 1).padStart(6, '0')}`;
+
+    const policy = await prisma.policy.create({
+      data: {
+        policyNumber,
+        holderName,
+        holderCpf,
+        holderPhone,
+        holderEmail,
+        type,
+        premium: parseFloat(premium),
+        coverage: parseFloat(coverage),
+        deductible: deductible ? parseFloat(deductible) : null,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        paymentDueDay: paymentDueDay ? parseInt(paymentDueDay) : null,
+        insurerName,
+        insurerCode,
+        vehiclePlate,
+        vehicleModel,
+        vehicleYear,
+        propertyAddress,
+        propertyType,
+        documentUrl,
+        notes,
+        leadId: leadId ? parseInt(leadId) : null
+      }
+    });
+
+    // Registrar atividade
+    await prisma.activity.create({
+      data: {
+        action: `Nova apólice criada: ${policyNumber}`,
+        icon: 'file-text',
+        color: 'text-blue-600',
+        relatedId: policy.id,
+        relatedType: 'policy'
+      }
+    });
+
+    res.status(201).json(policy);
+  } catch (error) {
+    console.error('Erro ao criar apólice:', error);
+    res.status(500).json({ erro: "Erro ao criar apólice" });
+  }
+});
+
+// PUT /policies/:id - Atualizar apólice
+app.put('/policies/:id', authenticateToken, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const data = { ...req.body };
+
+    // Converter tipos
+    if (data.premium) data.premium = parseFloat(data.premium);
+    if (data.coverage) data.coverage = parseFloat(data.coverage);
+    if (data.deductible) data.deductible = parseFloat(data.deductible);
+    if (data.startDate) data.startDate = new Date(data.startDate);
+    if (data.endDate) data.endDate = new Date(data.endDate);
+    if (data.paymentDueDay) data.paymentDueDay = parseInt(data.paymentDueDay);
+    if (data.leadId) data.leadId = parseInt(data.leadId);
+
+    const policy = await prisma.policy.update({
+      where: { id },
+      data
+    });
+
+    res.json(policy);
+  } catch (error) {
+    console.error('Erro ao atualizar apólice:', error);
+    res.status(500).json({ erro: "Erro ao atualizar apólice" });
+  }
+});
+
+// DELETE /policies/:id - Excluir apólice
+app.delete('/policies/:id', authenticateToken, async (req, res) => {
+  try {
+    await prisma.policy.delete({
+      where: { id: parseInt(req.params.id) }
+    });
+    res.json({ message: "Apólice excluída com sucesso" });
+  } catch (error) {
+    res.status(500).json({ erro: "Erro ao excluir apólice" });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));

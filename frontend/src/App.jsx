@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown, X, MessageCircle, Sparkles, Inbox, Megaphone, Briefcase, CreditCard, LogOut, User, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, Users, Plus, Search, Menu, RefreshCw, Send, Settings, Globe, ExternalLink, Filter, FileDown, X, MessageCircle, Sparkles, Inbox, Megaphone, Briefcase, CreditCard, LogOut, User, Moon, Sun, FileText } from 'lucide-react';
 import { getLeads, updateLeadStatus, deleteLead, getConfig } from './services/api';
 
 // --- COMPONENTES ---
@@ -13,6 +13,7 @@ import Logo from './components/Logo';
 import InboxPage from './components/InboxPage';
 import MarketingPage from './components/MarketingPage';
 import ServicesPage from './components/ServicesPage';
+import PoliciesPage from './components/PoliciesPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import PricingPage from './components/PricingPage';
@@ -250,6 +251,7 @@ function CRMContent() {
 
             <MenuItem icon={Megaphone} label="Marketing" active={view === 'marketing'} onClick={() => setView('marketing')} collapsed={!sidebarOpen} />
             <MenuItem icon={Briefcase} label="Serviços" active={view === 'services'} onClick={() => setView('services')} collapsed={!sidebarOpen} />
+            <MenuItem icon={FileText} label="Apólices" active={view === 'policies'} onClick={() => setView('policies')} collapsed={!sidebarOpen} badge="Enterprise" />
 
             {/* Divider */}
             <div className="my-3 mx-4 border-t border-white/10"></div>
@@ -548,6 +550,7 @@ function CRMContent() {
           {view === 'marketing' && <MarketingPage onNavigateToMarketplace={(category) => { setView('templates-marketplace'); if (category) setMarketplaceCategory(category); }} />}
           {view === 'templates-marketplace' && <TemplatesMarketplacePage onBack={() => setView('marketing')} initialCategory={marketplaceCategory} />}
           {view === 'services' && <ServicesPage />}
+          {view === 'policies' && <PoliciesPage onNavigateToPricing={() => setView('pricing')} />}
         </div>
       </main >
 

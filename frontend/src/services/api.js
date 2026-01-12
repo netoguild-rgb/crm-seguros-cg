@@ -96,4 +96,14 @@ export const saveTrafficData = (data) => api.post('/traffic', data);
 // ============================================
 export const getActivities = () => api.get('/activities');
 
+// ============================================
+// APÓLICES (Enterprise)
+// ============================================
+export const getPolicies = (params) => api.get('/policies', { params });
+export const getPolicyById = (id) => api.get(`/policies/${id}`);
+export const getPoliciesStats = () => api.get('/policies/stats');
+export const createPolicy = (data) => api.post('/policies', data);
+export const updatePolicy = (id, data) => api.put(`/policies/${id}`, data);
+export const deletePolicy = (id) => api.delete(`/policies/${id}`);
+
 export default api;

@@ -197,3 +197,55 @@ model Subscription {
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 }
+
+// ============================================
+// APÓLICES - Gestão de Seguros (Enterprise)
+// ============================================
+
+model Policy {
+  id              Int       @id @default(autoincrement())
+  policyNumber    String    @unique // Número da apólice
+  
+  // Segurado
+  holderName      String
+  holderCpf       String
+  holderPhone     String
+  holderEmail     String?
+  
+  // Tipo e Status
+  type            String    // Auto, Vida, Residencial, Saúde, Empresarial
+  status          String    @default("active") // active, pending, expired, cancelled
+  
+  // Valores
+  premium         Float     // Prêmio (valor pago)
+  coverage        Float     // Valor de cobertura
+  deductible      Float?    // Franquia
+  
+  // Datas
+  startDate       DateTime
+  endDate         DateTime
+  paymentDueDay   Int?      // Dia do vencimento
+  
+  // Seguradora
+  insurerName     String
+  insurerCode     String?
+  
+  // Veículo (para seguro auto)
+  vehiclePlate    String?
+  vehicleModel    String?
+  vehicleYear     String?
+  
+  // Imóvel (para residencial)
+  propertyAddress String?
+  propertyType    String?
+  
+  // Documentos e Observações
+  documentUrl     String?
+  notes           String?
+  
+  // Relacionamento com Lead
+  leadId          Int?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
