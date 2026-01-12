@@ -87,11 +87,13 @@ const RegisterPage = ({ onNavigateToLogin }) => {
                 <div className="relative z-10 flex flex-col justify-center px-16 py-12">
                     {/* Logo Large */}
                     <div className="mb-12">
-                        <img
-                            src={logoImg}
-                            alt="CRM Seguros"
-                            className="h-24 w-auto drop-shadow-2xl"
-                        />
+                        <div className="inline-block bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
+                            <img
+                                src={logoImg}
+                                alt="CRM Seguros"
+                                className="h-20 w-auto"
+                            />
+                        </div>
                     </div>
 
                     <h2 className="text-4xl font-bold text-white mb-4 leading-tight">
@@ -143,11 +145,13 @@ const RegisterPage = ({ onNavigateToLogin }) => {
                 <div className="w-full max-w-md">
                     {/* Mobile Logo */}
                     <div className="lg:hidden text-center mb-8">
-                        <img
-                            src={logoImg}
-                            alt="CRM Seguros"
-                            className="h-16 w-auto mx-auto mb-4"
-                        />
+                        <div className="inline-block bg-white/95 backdrop-blur-sm rounded-2xl p-3 shadow-lg">
+                            <img
+                                src={logoImg}
+                                alt="CRM Seguros"
+                                className="h-12 w-auto"
+                            />
+                        </div>
                     </div>
 
                     {/* Welcome Text */}
