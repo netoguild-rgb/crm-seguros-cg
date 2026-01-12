@@ -228,7 +228,7 @@ const PLANS = {
     price: 39900, // R$ 399,00
     features: ['Leads ilimitados', 'Websites ilimitados', 'Agente IA personalizado', 'Usuários ilimitados', 'API']
   }
-};;
+};
 
 // GET /stripe/plans - Lista planos disponíveis
 app.get('/stripe/plans', (req, res) => {
