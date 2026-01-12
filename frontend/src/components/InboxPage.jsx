@@ -200,21 +200,21 @@ function InboxPage({ onNavigateToPricing }) {
                             <Lock size={36} className="text-white" />
                         </div>
 
-                        <h2 className="text-2xl font-bold text-slate-800 mb-3">
+                        <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-3">
                             Recurso Premium
                         </h2>
 
-                        <p className="text-slate-600 mb-6">
-                            O <strong>Agente Autônomo de WhatsApp</strong> está disponível a partir do plano <span className="text-purple-600 font-semibold">Basic</span>.
+                        <p className="text-slate-600 dark:text-slate-300 mb-6">
+                            O <strong>Agente Autônomo de WhatsApp</strong> está disponível a partir do plano <span className="text-purple-600 dark:text-purple-400 font-semibold">Basic</span>.
                             Automatize o atendimento e capture leads 24/7!
                         </p>
 
-                        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-4 mb-6 border border-purple-100">
+                        <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 rounded-2xl p-4 mb-6 border border-purple-100 dark:border-purple-500/30">
                             <div className="flex items-center gap-3 text-left">
                                 <Sparkles className="w-8 h-8 text-purple-500 shrink-0" />
                                 <div>
-                                    <p className="font-semibold text-slate-800">Plano Basic - R$ 129/mês</p>
-                                    <p className="text-sm text-slate-600">Agente + Website + 50 leads/mês</p>
+                                    <p className="font-semibold text-slate-800 dark:text-white">Plano Basic - R$ 129/mês</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-300">Agente + Website + 50 leads/mês</p>
                                 </div>
                             </div>
                         </div>

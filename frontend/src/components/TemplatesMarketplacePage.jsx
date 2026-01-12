@@ -35,11 +35,11 @@ const templatesData = {
         description: 'Templates para campanhas de seguro automotivo',
         templates: [
             { id: 1, name: 'Proteção Total Auto', image: storyGeralImg, isFree: true, downloads: 1240, rating: 4.8, description: 'Template versátil para qualquer campanha de seguro auto' },
-            { id: 2, name: 'Promoção Black Friday', image: storyAutoImg, isFree: false, price: 29.90, downloads: 890, rating: 4.9, description: 'Perfeito para campanhas de Black Friday' },
-            { id: 3, name: 'Renovação Fácil', image: storyAuto1Img, isFree: false, price: 19.90, downloads: 654, rating: 4.7, description: 'Ideal para campanhas de renovação de apólices' },
-            { id: 4, name: 'Carro Novo', preview: 'linear-gradient(135deg, #7c3aed, #a855f7)', isFree: false, price: 24.90, downloads: 432, rating: 4.6, description: 'Para clientes que acabaram de comprar um veículo' },
-            { id: 5, name: 'Seguro Premium', preview: 'linear-gradient(135deg, #f59e0b, #d97706)', isFree: false, price: 34.90, downloads: 321, rating: 4.9, description: 'Template para coberturas premium' },
-            { id: 6, name: 'Família Protegida', preview: 'linear-gradient(135deg, #ec4899, #db2777)', isFree: false, price: 29.90, downloads: 567, rating: 4.8, description: 'Focado em proteção familiar' },
+            { id: 2, name: 'Promoção Black Friday', image: storyAutoImg, isFree: false, price: 9.99, downloads: 890, rating: 4.9, description: 'Perfeito para campanhas de Black Friday' },
+            { id: 3, name: 'Renovação Fácil', image: storyAuto1Img, isFree: false, price: 9.99, downloads: 654, rating: 4.7, description: 'Ideal para campanhas de renovação de apólices' },
+            { id: 4, name: 'Carro Novo', preview: 'linear-gradient(135deg, #7c3aed, #a855f7)', isFree: false, price: 9.99, downloads: 432, rating: 4.6, description: 'Para clientes que acabaram de comprar um veículo' },
+            { id: 5, name: 'Seguro Premium', preview: 'linear-gradient(135deg, #f59e0b, #d97706)', isFree: false, price: 9.99, downloads: 321, rating: 4.9, description: 'Template para coberturas premium' },
+            { id: 6, name: 'Família Protegida', preview: 'linear-gradient(135deg, #ec4899, #db2777)', isFree: false, price: 9.99, downloads: 567, rating: 4.8, description: 'Focado em proteção familiar' },
         ]
     },
     'vida': {
@@ -49,9 +49,9 @@ const templatesData = {
         description: 'Templates para campanhas de seguro de vida',
         templates: [
             { id: 7, name: 'Proteção Familiar', image: storyGeralImg, isFree: true, downloads: 980, rating: 4.7, description: 'Template versátil para seguro de vida' },
-            { id: 8, name: 'Futuro Seguro', preview: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', isFree: false, price: 24.90, downloads: 654, rating: 4.8, description: 'Para planejamento de futuro' },
-            { id: 9, name: 'Tranquilidade Total', preview: 'linear-gradient(135deg, #06b6d4, #0891b2)', isFree: false, price: 29.90, downloads: 432, rating: 4.6, description: 'Paz para toda família' },
-            { id: 10, name: 'Herança Protegida', preview: 'linear-gradient(135deg, #f97316, #ea580c)', isFree: false, price: 34.90, downloads: 321, rating: 4.9, description: 'Proteção patrimonial' },
+            { id: 8, name: 'Futuro Seguro', preview: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', isFree: false, price: 9.99, downloads: 654, rating: 4.8, description: 'Para planejamento de futuro' },
+            { id: 9, name: 'Tranquilidade Total', preview: 'linear-gradient(135deg, #06b6d4, #0891b2)', isFree: false, price: 9.99, downloads: 432, rating: 4.6, description: 'Paz para toda família' },
+            { id: 10, name: 'Herança Protegida', preview: 'linear-gradient(135deg, #f97316, #ea580c)', isFree: false, price: 9.99, downloads: 321, rating: 4.9, description: 'Proteção patrimonial' },
         ]
     },
     'residencial': {
@@ -61,8 +61,8 @@ const templatesData = {
         description: 'Templates para campanhas de seguro residencial',
         templates: [
             { id: 11, name: 'Lar Seguro', image: storyGeralImg, isFree: true, downloads: 876, rating: 4.8, description: 'Template versátil para seguro residencial' },
-            { id: 12, name: 'Proteção 24h', preview: 'linear-gradient(135deg, #3b82f6, #2563eb)', isFree: false, price: 19.90, downloads: 543, rating: 4.7, description: 'Assistência 24 horas' },
-            { id: 13, name: 'Casa Nova', preview: 'linear-gradient(135deg, #f59e0b, #d97706)', isFree: false, price: 24.90, downloads: 432, rating: 4.6, description: 'Para novos imóveis' },
+            { id: 12, name: 'Proteção 24h', preview: 'linear-gradient(135deg, #3b82f6, #2563eb)', isFree: false, price: 9.99, downloads: 543, rating: 4.7, description: 'Assistência 24 horas' },
+            { id: 13, name: 'Casa Nova', preview: 'linear-gradient(135deg, #f59e0b, #d97706)', isFree: false, price: 9.99, downloads: 432, rating: 4.6, description: 'Para novos imóveis' },
         ]
     },
     'saude': {
@@ -72,8 +72,8 @@ const templatesData = {
         description: 'Templates para campanhas de planos de saúde',
         templates: [
             { id: 14, name: 'Saúde em Dia', image: storyGeralImg, isFree: true, downloads: 1120, rating: 4.9, description: 'Template versátil para planos de saúde' },
-            { id: 15, name: 'Família Saudável', preview: 'linear-gradient(135deg, #ec4899, #db2777)', isFree: false, price: 29.90, downloads: 765, rating: 4.8, description: 'Planos familiares' },
-            { id: 16, name: 'Check-up Grátis', preview: 'linear-gradient(135deg, #14b8a6, #0d9488)', isFree: false, price: 24.90, downloads: 543, rating: 4.7, description: 'Promoção de check-up' },
+            { id: 15, name: 'Família Saudável', preview: 'linear-gradient(135deg, #ec4899, #db2777)', isFree: false, price: 9.99, downloads: 765, rating: 4.8, description: 'Planos familiares' },
+            { id: 16, name: 'Check-up Grátis', preview: 'linear-gradient(135deg, #14b8a6, #0d9488)', isFree: false, price: 9.99, downloads: 543, rating: 4.7, description: 'Promoção de check-up' },
         ]
     },
     'social': {
@@ -83,9 +83,9 @@ const templatesData = {
         description: 'Templates para Stories e Posts em redes sociais',
         templates: [
             { id: 17, name: 'Story Promo', image: storyGeralImg, isFree: true, downloads: 2340, rating: 4.9, description: 'Template versátil para stories' },
-            { id: 18, name: 'Post Carrossel', preview: 'linear-gradient(135deg, #8b5cf6, #a855f7)', isFree: false, price: 19.90, downloads: 1890, rating: 4.8, description: 'Para posts em carrossel' },
-            { id: 19, name: 'Reels Template', preview: 'linear-gradient(135deg, #06b6d4, #0ea5e9)', isFree: false, price: 34.90, downloads: 1234, rating: 4.9, description: 'Vídeos curtos para reels' },
-            { id: 20, name: 'Feed Harmonico', preview: 'linear-gradient(135deg, #f59e0b, #f97316)', isFree: false, price: 49.90, downloads: 876, rating: 4.7, description: 'Feed harmonioso' },
+            { id: 18, name: 'Post Carrossel', preview: 'linear-gradient(135deg, #8b5cf6, #a855f7)', isFree: false, price: 9.99, downloads: 1890, rating: 4.8, description: 'Para posts em carrossel' },
+            { id: 19, name: 'Reels Template', preview: 'linear-gradient(135deg, #06b6d4, #0ea5e9)', isFree: false, price: 9.99, downloads: 1234, rating: 4.9, description: 'Vídeos curtos para reels' },
+            { id: 20, name: 'Feed Harmonico', preview: 'linear-gradient(135deg, #f59e0b, #f97316)', isFree: false, price: 9.99, downloads: 876, rating: 4.7, description: 'Feed harmonioso' },
         ]
     },
     'especial': {
@@ -95,9 +95,9 @@ const templatesData = {
         description: 'Templates para datas especiais e comemorativas',
         templates: [
             { id: 21, name: 'Natal Seguro', image: storyGeralImg, isFree: true, downloads: 3210, rating: 4.9, description: 'Template especial de Natal' },
-            { id: 22, name: 'Ano Novo', preview: 'linear-gradient(135deg, #f59e0b, #facc15)', isFree: false, price: 19.90, downloads: 2890, rating: 4.8, description: 'Feliz Ano Novo' },
-            { id: 23, name: 'Dia das Mães', preview: 'linear-gradient(135deg, #ec4899, #f472b6)', isFree: false, price: 24.90, downloads: 1654, rating: 4.7, description: 'Homenagem às mães' },
-            { id: 24, name: 'Black Friday', image: storyAutoImg, isFree: false, price: 29.90, downloads: 4320, rating: 4.9, description: 'Promoções Black Friday' },
+            { id: 22, name: 'Ano Novo', preview: 'linear-gradient(135deg, #f59e0b, #facc15)', isFree: false, price: 9.99, downloads: 2890, rating: 4.8, description: 'Feliz Ano Novo' },
+            { id: 23, name: 'Dia das Mães', preview: 'linear-gradient(135deg, #ec4899, #f472b6)', isFree: false, price: 9.99, downloads: 1654, rating: 4.7, description: 'Homenagem às mães' },
+            { id: 24, name: 'Black Friday', image: storyAutoImg, isFree: false, price: 9.99, downloads: 4320, rating: 4.9, description: 'Promoções Black Friday' },
         ]
     }
 };
@@ -528,12 +528,6 @@ function TemplatesMarketplacePage({ onBack, initialCategory = null }) {
                                             <p className="text-slate-400 text-sm">Investimento</p>
                                             <p className="text-3xl font-bold text-white">R$ {previewTemplate.price.toFixed(2)}</p>
                                         </div>
-                                        {!hasPaidPlan && (
-                                            <div className="flex items-center gap-2 text-amber-400 text-sm bg-amber-500/10 px-3 py-2 rounded-lg">
-                                                <Lock size={16} />
-                                                Requer plano pago
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             )}
@@ -546,26 +540,17 @@ function TemplatesMarketplacePage({ onBack, initialCategory = null }) {
                                     Fechar
                                 </button>
                                 <button
-                                    className={`flex-1 py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${previewTemplate.isFree || hasPaidPlan
-                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-lg hover:shadow-purple-500/25'
-                                        : 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                                        }`}
-                                    disabled={!previewTemplate.isFree && !hasPaidPlan}
+                                    className="flex-1 py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-lg hover:shadow-purple-500/25"
                                 >
                                     {previewTemplate.isFree ? (
                                         <>
                                             <Download size={18} />
                                             Baixar Grátis
                                         </>
-                                    ) : hasPaidPlan ? (
-                                        <>
-                                            <ShoppingCart size={18} />
-                                            Comprar
-                                        </>
                                     ) : (
                                         <>
-                                            <Lock size={18} />
-                                            Fazer Upgrade
+                                            <ShoppingCart size={18} />
+                                            Comprar - R$ {previewTemplate.price?.toFixed(2)}
                                         </>
                                     )}
                                 </button>
