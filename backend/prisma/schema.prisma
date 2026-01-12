@@ -7,162 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Lead {
-  id        Int      @id @default(autoincrement())
-  criadoEm  DateTime @default(now())
-  
-  nome                String
-  whatsapp            String
-  email               String?
-  cpf                 String?
-  status              String   @default("NOVO")
-  
-  tipo_seguro         String?
-  placa               String?
-  modelo_veiculo      String?
-  ano_veiculo         String?
-  uso_veiculo         String?
-
-  link_pasta          String?
-  dados_extras        Json?
-}
-
-model Config {
-  id                  String   @id @default("system")
-  promo_folder_link   String?
-  message_header      String?
-  
-  // --- NOVOS CAMPOS (Tarefa 4) ---
-  broker_name         String?  @default("CRM Seguros") // Nome da Corretora
-  primary_color       String?  @default("#0f172a")     // Cor do CRM (Hex)
-  logo_url            String?                          // URL da Logo
-  
-  updatedAt           DateTime @updatedAt
-}
-
-// ============================================
-// INBOX - Mensagens WhatsApp via Evolution API
-// ============================================
-
-model Conversation {
-  id          Int       @id @default(autoincrement())
-  remoteJid   String    @unique // Número WhatsApp no formato 5511999999999@s.whatsapp.net
-  name        String?
-  phone       String
-  avatarUrl   String?
-  isOnline    Boolean   @default(false)
-  unreadCount Int       @default(0)
-  lastMessage String?
-  lastMessageAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  messages    Message[]
-}
-
-model Message {
-  id             Int          @id @default(autoincrement())
-  conversationId Int
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  
-  messageId      String?      @unique // ID da mensagem do WhatsApp
-  text           String
-  isFromMe       Boolean      @default(false)
-  status         String       @default("sent") // sent, delivered, read
-  timestamp      DateTime     @default(now())
-  
-  createdAt      DateTime     @default(now())
-}
-
-// ============================================
-// MARKETING - Campanhas e Templates
-// ============================================
-
-model Campaign {
-  id          Int       @id @default(autoincrement())
-  name        String
-  type        String    // Promoção, Institucional, Seguro Auto, etc
-  status      String    @default("active") // active, paused, ended
-  startDate   DateTime
-  endDate     DateTime?
-  
-  // Métricas
-  views       Int       @default(0)
-  engagement  Float     @default(0)
-  leads       Int       @default(0)
-  
-  imageUrl    String?
-  description String?
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
-model Template {
-  id          Int       @id @default(autoincrement())
-  name        String
-  category    String    // Auto, Vida, Residencial, Saúde, Especial, Social
-  icon        String?   // Emoji do template
-  gradient    String?   // Classe CSS do gradiente
-  content     String?   // Conteúdo do template (HTML ou texto)
-  imageUrl    String?
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
-// ============================================
-// SERVIÇOS - Posts e Tráfego Pago
-// ============================================
-
-model Post {
-  id          Int       @id @default(autoincrement())
-  title       String
-  content     String?
-  platform    String    // Instagram, Facebook, LinkedIn, etc
-  status      String    @default("draft") // draft, scheduled, published
-  scheduledAt DateTime?
-  publishedAt DateTime?
-  
-  // Métricas
-  views       Int       @default(0)
-  likes       Int       @default(0)
-  shares      Int       @default(0)
-  
-  imageUrl    String?
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
-model TrafficData {
-  id            Int       @id @default(autoincrement())
-  platform      String    // google, meta
-  period        String    // 2026-01, etc (para agrupar por mês)
-  
-  spend         Float     @default(0)
-  clicks        Int       @default(0)
-  impressions   Int       @default(0)
-  ctr           Float     @default(0)
-  conversions   Int       @default(0)
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  @@unique([platform, period])
-}
-
-model Activity {
-  id          Int       @id @default(autoincrement())
-  action      String
-  icon        String?   // send, eye, user, calendar
-  color       String?   // text-green-600, etc
-  relatedId   Int?      // ID do item relacionado (post, campaign, etc)
-  relatedType String?   // post, campaign, lead
-  
-  createdAt   DateTime  @default(now())
-}
-
 // ============================================
 // AUTENTICAÇÃO - Usuários e Assinaturas
 // ============================================
@@ -172,10 +16,20 @@ model User {
   email             String    @unique
   password          String
   name              String
-  role              String    @default("user") // admin, user
+  role              String    @default("user") // user, admin, superadmin
   stripeCustomerId  String?   @unique
   
+  // Relações Multi-Tenant
   subscription      Subscription?
+  config            Config?
+  leads             Lead[]
+  policies          Policy[]
+  conversations     Conversation[]
+  campaigns         Campaign[]
+  templates         Template[]
+  posts             Post[]
+  trafficData       TrafficData[]
+  activities        Activity[]
   
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -199,12 +53,220 @@ model Subscription {
 }
 
 // ============================================
-// APÓLICES - Gestão de Seguros (Enterprise)
+// LEADS - Multi-Tenant
+// ============================================
+
+model Lead {
+  id        Int      @id @default(autoincrement())
+  userId    Int      // Multi-tenant
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  criadoEm  DateTime @default(now())
+  
+  nome                String
+  whatsapp            String
+  email               String?
+  cpf                 String?
+  status              String   @default("NOVO")
+  
+  tipo_seguro         String?
+  placa               String?
+  modelo_veiculo      String?
+  ano_veiculo         String?
+  uso_veiculo         String?
+
+  link_pasta          String?
+  dados_extras        Json?
+  
+  @@index([userId])
+}
+
+// ============================================
+// CONFIGURAÇÕES - Por Usuário (Multi-Tenant)
+// ============================================
+
+model Config {
+  id                  Int      @id @default(autoincrement())
+  userId              Int      @unique // Uma config por usuário
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  promo_folder_link   String?
+  message_header      String?
+  broker_name         String?  @default("CRM Seguros")
+  primary_color       String?  @default("#0f172a")
+  logo_url            String?
+  
+  // Configurações de integração
+  evolutionApiUrl     String?
+  evolutionApiKey     String?
+  n8nWebhookUrl       String?
+  
+  updatedAt           DateTime @updatedAt
+}
+
+// ============================================
+// INBOX - Mensagens WhatsApp (Multi-Tenant)
+// ============================================
+
+model Conversation {
+  id          Int       @id @default(autoincrement())
+  userId      Int       // Multi-tenant
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  remoteJid   String    // Número WhatsApp
+  name        String?
+  phone       String
+  avatarUrl   String?
+  isOnline    Boolean   @default(false)
+  unreadCount Int       @default(0)
+  lastMessage String?
+  lastMessageAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  messages    Message[]
+  
+  @@unique([userId, remoteJid]) // Único por usuário+contato
+  @@index([userId])
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  messageId      String?      // ID da mensagem do WhatsApp
+  text           String
+  isFromMe       Boolean      @default(false)
+  status         String       @default("sent")
+  timestamp      DateTime     @default(now())
+  
+  createdAt      DateTime     @default(now())
+  
+  @@index([conversationId])
+}
+
+// ============================================
+// MARKETING - Campanhas e Templates (Multi-Tenant)
+// ============================================
+
+model Campaign {
+  id          Int       @id @default(autoincrement())
+  userId      Int       // Multi-tenant
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name        String
+  type        String
+  status      String    @default("active")
+  startDate   DateTime
+  endDate     DateTime?
+  
+  views       Int       @default(0)
+  engagement  Float     @default(0)
+  leads       Int       @default(0)
+  
+  imageUrl    String?
+  description String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([userId])
+}
+
+model Template {
+  id          Int       @id @default(autoincrement())
+  userId      Int       // Multi-tenant
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name        String
+  category    String
+  icon        String?
+  gradient    String?
+  content     String?
+  imageUrl    String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([userId])
+}
+
+// ============================================
+// SERVIÇOS - Posts e Tráfego (Multi-Tenant)
+// ============================================
+
+model Post {
+  id          Int       @id @default(autoincrement())
+  userId      Int       // Multi-tenant
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title       String
+  content     String?
+  platform    String
+  status      String    @default("draft")
+  scheduledAt DateTime?
+  publishedAt DateTime?
+  
+  views       Int       @default(0)
+  likes       Int       @default(0)
+  shares      Int       @default(0)
+  
+  imageUrl    String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([userId])
+}
+
+model TrafficData {
+  id            Int       @id @default(autoincrement())
+  userId        Int       // Multi-tenant
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  platform      String
+  period        String
+  
+  spend         Float     @default(0)
+  clicks        Int       @default(0)
+  impressions   Int       @default(0)
+  ctr           Float     @default(0)
+  conversions   Int       @default(0)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@unique([userId, platform, period])
+  @@index([userId])
+}
+
+model Activity {
+  id          Int       @id @default(autoincrement())
+  userId      Int       // Multi-tenant
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  action      String
+  icon        String?
+  color       String?
+  relatedId   Int?
+  relatedType String?
+  
+  createdAt   DateTime  @default(now())
+  
+  @@index([userId])
+}
+
+// ============================================
+// APÓLICES - Gestão de Seguros (Multi-Tenant)
 // ============================================
 
 model Policy {
   id              Int       @id @default(autoincrement())
-  policyNumber    String    @unique // Número da apólice
+  userId          Int       // Multi-tenant
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  policyNumber    String    // Número da apólice (único por usuário)
   
   // Segurado
   holderName      String
@@ -213,33 +275,33 @@ model Policy {
   holderEmail     String?
   
   // Tipo e Status
-  type            String    // Auto, Vida, Residencial, Saúde, Empresarial
-  status          String    @default("active") // active, pending, expired, cancelled
+  type            String
+  status          String    @default("active")
   
   // Valores
-  premium         Float     // Prêmio (valor pago)
-  coverage        Float     // Valor de cobertura
-  deductible      Float?    // Franquia
+  premium         Float
+  coverage        Float
+  deductible      Float?
   
   // Datas
   startDate       DateTime
   endDate         DateTime
-  paymentDueDay   Int?      // Dia do vencimento
+  paymentDueDay   Int?
   
   // Seguradora
   insurerName     String
   insurerCode     String?
   
-  // Veículo (para seguro auto)
+  // Veículo (seguro auto)
   vehiclePlate    String?
   vehicleModel    String?
   vehicleYear     String?
   
-  // Imóvel (para residencial)
+  // Imóvel (residencial)
   propertyAddress String?
   propertyType    String?
   
-  // Documentos e Observações
+  // Documentos
   documentUrl     String?
   notes           String?
   
@@ -248,4 +310,7 @@ model Policy {
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  
+  @@unique([userId, policyNumber])
+  @@index([userId])
 }

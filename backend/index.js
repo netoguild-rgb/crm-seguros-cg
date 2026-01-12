@@ -5,6 +5,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
 
+// Middlewares Multi-Tenant
+const { tenantFilter, checkLimit, checkFeature, requireRole, getUserLimits, PLAN_LIMITS } = require('./middleware/multiTenant');
+
 const app = express();
 const prisma = new PrismaClient();
 
@@ -453,16 +456,14 @@ app.post('/stripe/webhook', express.raw({ type: 'application/json' }), async (re
 // ROTAS PROTEGIDAS - Config, Leads, etc.
 // ============================================
 
-// --- ROTAS DE CONFIGURAÇÃO ---
-app.get('/config', optionalAuth, async (req, res) => {
+// --- ROTAS DE CONFIGURAÇÃO (Multi-Tenant) ---
+app.get('/config', authenticateToken, async (req, res) => {
   try {
-    let config = await prisma.config.findUnique({ where: { id: 'system' } });
+    let config = await prisma.config.findUnique({ where: { userId: req.user.id } });
     if (!config) {
       config = await prisma.config.create({
         data: {
-          id: 'system',
-          promo_folder_link: '',
-          message_header: '',
+          userId: req.user.id,
           broker_name: 'CRM Seguros',
           primary_color: '#0f172a',
           logo_url: ''
@@ -478,12 +479,12 @@ app.get('/config', optionalAuth, async (req, res) => {
 
 app.post('/config', authenticateToken, async (req, res) => {
   try {
-    const { promo_folder_link, message_header, broker_name, primary_color, logo_url } = req.body;
+    const { promo_folder_link, message_header, broker_name, primary_color, logo_url, evolutionApiUrl, evolutionApiKey, n8nWebhookUrl } = req.body;
 
     const config = await prisma.config.upsert({
-      where: { id: 'system' },
-      update: { promo_folder_link, message_header, broker_name, primary_color, logo_url },
-      create: { id: 'system', promo_folder_link, message_header, broker_name, primary_color, logo_url }
+      where: { userId: req.user.id },
+      update: { promo_folder_link, message_header, broker_name, primary_color, logo_url, evolutionApiUrl, evolutionApiKey, n8nWebhookUrl },
+      create: { userId: req.user.id, promo_folder_link, message_header, broker_name, primary_color, logo_url, evolutionApiUrl, evolutionApiKey, n8nWebhookUrl }
     });
     res.json(config);
   } catch (error) {
@@ -491,8 +492,18 @@ app.post('/config', authenticateToken, async (req, res) => {
   }
 });
 
-// --- ROTAS DE LEADS ---
-app.post('/leads', optionalAuth, async (req, res) => {
+// --- ROTA DE LIMITES DO USUÁRIO ---
+app.get('/user/limits', authenticateToken, async (req, res) => {
+  try {
+    const limits = await getUserLimits(prisma, req.user.id);
+    res.json(limits);
+  } catch (error) {
+    res.status(500).json({ erro: "Erro ao buscar limites" });
+  }
+});
+
+// --- ROTAS DE LEADS (Multi-Tenant) ---
+app.post('/leads', authenticateToken, checkLimit(prisma, 'lead'), async (req, res) => {
   try {
     const dados = req.body;
     let whatsLimpo = "00000000000";
@@ -502,6 +513,7 @@ app.post('/leads', optionalAuth, async (req, res) => {
 
     const lead = await prisma.lead.create({
       data: {
+        userId: req.user.id, // Multi-tenant
         nome: dados.nome || dados.Nome_completo || "Sem Nome",
         whatsapp: whatsLimpo,
         email: dados.email,
@@ -521,9 +533,12 @@ app.post('/leads', optionalAuth, async (req, res) => {
   }
 });
 
-app.get('/leads', optionalAuth, async (req, res) => {
+app.get('/leads', authenticateToken, async (req, res) => {
   try {
-    const leads = await prisma.lead.findMany({ orderBy: { criadoEm: 'desc' } });
+    const leads = await prisma.lead.findMany({
+      where: { userId: req.user.id }, // Multi-tenant
+      orderBy: { criadoEm: 'desc' }
+    });
     res.json(leads);
   } catch (error) {
     res.status(500).json({ erro: "Erro ao buscar leads" });
@@ -534,6 +549,16 @@ app.patch('/leads/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { status, link_pasta } = req.body;
+
+    // Verifica se o lead pertence ao usuário
+    const existingLead = await prisma.lead.findFirst({
+      where: { id: Number(id), userId: req.user.id }
+    });
+
+    if (!existingLead) {
+      return res.status(404).json({ erro: "Lead não encontrado" });
+    }
+
     const dataToUpdate = {};
     if (status !== undefined) dataToUpdate.status = status;
     if (link_pasta !== undefined) dataToUpdate.link_pasta = link_pasta;
@@ -550,18 +575,28 @@ app.patch('/leads/:id', authenticateToken, async (req, res) => {
 
 app.delete('/leads/:id', authenticateToken, async (req, res) => {
   try {
+    // Verifica se o lead pertence ao usuário
+    const existingLead = await prisma.lead.findFirst({
+      where: { id: Number(req.params.id), userId: req.user.id }
+    });
+
+    if (!existingLead) {
+      return res.status(404).json({ erro: "Lead não encontrado" });
+    }
+
     await prisma.lead.delete({ where: { id: Number(req.params.id) } });
     res.json({ msg: "Deletado" });
   } catch (e) { res.status(500).json({ erro: "Erro ao deletar" }); }
 });
 
 // ============================================
-// INBOX - Conversas e Mensagens
+// INBOX - Conversas e Mensagens (Multi-Tenant)
 // ============================================
 
-app.get('/conversations', optionalAuth, async (req, res) => {
+app.get('/conversations', authenticateToken, async (req, res) => {
   try {
     const conversations = await prisma.conversation.findMany({
+      where: { userId: req.user.id }, // Multi-tenant
       orderBy: { lastMessageAt: 'desc' },
       include: { messages: { take: 1, orderBy: { timestamp: 'desc' } } }
     });
@@ -571,10 +606,10 @@ app.get('/conversations', optionalAuth, async (req, res) => {
   }
 });
 
-app.get('/conversations/:id', optionalAuth, async (req, res) => {
+app.get('/conversations/:id', authenticateToken, async (req, res) => {
   try {
-    const conversation = await prisma.conversation.findUnique({
-      where: { id: Number(req.params.id) },
+    const conversation = await prisma.conversation.findFirst({
+      where: { id: Number(req.params.id), userId: req.user.id }, // Multi-tenant
       include: { messages: { orderBy: { timestamp: 'asc' } } }
     });
     if (!conversation) return res.status(404).json({ erro: "Conversa não encontrada" });
@@ -584,13 +619,13 @@ app.get('/conversations/:id', optionalAuth, async (req, res) => {
   }
 });
 
-app.post('/conversations', authenticateToken, async (req, res) => {
+app.post('/conversations', authenticateToken, checkLimit(prisma, 'conversation'), async (req, res) => {
   try {
     const { remoteJid, name, phone, avatarUrl } = req.body;
     const conversation = await prisma.conversation.upsert({
-      where: { remoteJid },
+      where: { userId_remoteJid: { userId: req.user.id, remoteJid } },
       update: { name, avatarUrl },
-      create: { remoteJid, name, phone, avatarUrl }
+      create: { userId: req.user.id, remoteJid, name, phone, avatarUrl }
     });
     res.json(conversation);
   } catch (error) {
@@ -863,12 +898,13 @@ app.post('/traffic', authenticateToken, async (req, res) => {
 });
 
 // ============================================
-// ATIVIDADES RECENTES
+// ATIVIDADES RECENTES (Multi-Tenant)
 // ============================================
 
-app.get('/activities', optionalAuth, async (req, res) => {
+app.get('/activities', authenticateToken, async (req, res) => {
   try {
     const activities = await prisma.activity.findMany({
+      where: { userId: req.user.id },
       orderBy: { createdAt: 'desc' },
       take: 20
     });
@@ -879,37 +915,38 @@ app.get('/activities', optionalAuth, async (req, res) => {
 });
 
 // ============================================
-// APÓLICES - CRUD (Enterprise Only)
+// APÓLICES - CRUD (Multi-Tenant, Enterprise Only)
 // ============================================
 
 // GET /policies/stats - Estatísticas das apólices
-app.get('/policies/stats', authenticateToken, async (req, res) => {
+app.get('/policies/stats', authenticateToken, checkFeature(prisma, 'policies'), async (req, res) => {
   try {
     const now = new Date();
     const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const userFilter = { userId: req.user.id };
 
     const [total, active, pending, expired, expiringSoon, totalPremium] = await Promise.all([
-      prisma.policy.count(),
-      prisma.policy.count({ where: { status: 'active' } }),
-      prisma.policy.count({ where: { status: 'pending' } }),
-      prisma.policy.count({ where: { status: 'expired' } }),
+      prisma.policy.count({ where: userFilter }),
+      prisma.policy.count({ where: { ...userFilter, status: 'active' } }),
+      prisma.policy.count({ where: { ...userFilter, status: 'pending' } }),
+      prisma.policy.count({ where: { ...userFilter, status: 'expired' } }),
       prisma.policy.count({
         where: {
+          ...userFilter,
           status: 'active',
           endDate: { gte: now, lte: thirtyDaysFromNow }
         }
       }),
       prisma.policy.aggregate({
-        where: { status: 'active' },
+        where: { ...userFilter, status: 'active' },
         _sum: { premium: true }
       })
     ]);
 
-    // Contagem por tipo
     const byType = await prisma.policy.groupBy({
       by: ['type'],
       _count: true,
-      where: { status: 'active' }
+      where: { ...userFilter, status: 'active' }
     });
 
     res.json({
@@ -931,11 +968,11 @@ app.get('/policies/stats', authenticateToken, async (req, res) => {
 });
 
 // GET /policies - Listar apólices com filtros
-app.get('/policies', authenticateToken, async (req, res) => {
+app.get('/policies', authenticateToken, checkFeature(prisma, 'policies'), async (req, res) => {
   try {
     const { status, type, search, page = 1, limit = 20 } = req.query;
 
-    const where = {};
+    const where = { userId: req.user.id }; // Multi-tenant
 
     if (status) where.status = status;
     if (type) where.type = type;
@@ -971,10 +1008,10 @@ app.get('/policies', authenticateToken, async (req, res) => {
 });
 
 // GET /policies/:id - Buscar apólice por ID
-app.get('/policies/:id', authenticateToken, async (req, res) => {
+app.get('/policies/:id', authenticateToken, checkFeature(prisma, 'policies'), async (req, res) => {
   try {
-    const policy = await prisma.policy.findUnique({
-      where: { id: parseInt(req.params.id) }
+    const policy = await prisma.policy.findFirst({
+      where: { id: parseInt(req.params.id), userId: req.user.id }
     });
 
     if (!policy) {
@@ -988,7 +1025,7 @@ app.get('/policies/:id', authenticateToken, async (req, res) => {
 });
 
 // POST /policies - Criar nova apólice
-app.post('/policies', authenticateToken, async (req, res) => {
+app.post('/policies', authenticateToken, checkFeature(prisma, 'policies'), checkLimit(prisma, 'policy'), async (req, res) => {
   try {
     const {
       holderName, holderCpf, holderPhone, holderEmail,
@@ -1000,13 +1037,14 @@ app.post('/policies', authenticateToken, async (req, res) => {
       documentUrl, notes, leadId
     } = req.body;
 
-    // Gerar número da apólice automaticamente
+    // Gerar número da apólice automaticamente (único por usuário)
     const year = new Date().getFullYear();
-    const count = await prisma.policy.count();
+    const count = await prisma.policy.count({ where: { userId: req.user.id } });
     const policyNumber = `APL-${year}-${String(count + 1).padStart(6, '0')}`;
 
     const policy = await prisma.policy.create({
       data: {
+        userId: req.user.id, // Multi-tenant
         policyNumber,
         holderName,
         holderCpf,
@@ -1035,6 +1073,7 @@ app.post('/policies', authenticateToken, async (req, res) => {
     // Registrar atividade
     await prisma.activity.create({
       data: {
+        userId: req.user.id,
         action: `Nova apólice criada: ${policyNumber}`,
         icon: 'file-text',
         color: 'text-blue-600',
@@ -1051,9 +1090,19 @@ app.post('/policies', authenticateToken, async (req, res) => {
 });
 
 // PUT /policies/:id - Atualizar apólice
-app.put('/policies/:id', authenticateToken, async (req, res) => {
+app.put('/policies/:id', authenticateToken, checkFeature(prisma, 'policies'), async (req, res) => {
   try {
     const id = parseInt(req.params.id);
+
+    // Verificar se pertence ao usuário
+    const existing = await prisma.policy.findFirst({
+      where: { id, userId: req.user.id }
+    });
+
+    if (!existing) {
+      return res.status(404).json({ erro: "Apólice não encontrada" });
+    }
+
     const data = { ...req.body };
 
     // Converter tipos
@@ -1078,11 +1127,20 @@ app.put('/policies/:id', authenticateToken, async (req, res) => {
 });
 
 // DELETE /policies/:id - Excluir apólice
-app.delete('/policies/:id', authenticateToken, async (req, res) => {
+app.delete('/policies/:id', authenticateToken, checkFeature(prisma, 'policies'), async (req, res) => {
   try {
-    await prisma.policy.delete({
-      where: { id: parseInt(req.params.id) }
+    const id = parseInt(req.params.id);
+
+    // Verificar se pertence ao usuário
+    const existing = await prisma.policy.findFirst({
+      where: { id, userId: req.user.id }
     });
+
+    if (!existing) {
+      return res.status(404).json({ erro: "Apólice não encontrada" });
+    }
+
+    await prisma.policy.delete({ where: { id } });
     res.json({ message: "Apólice excluída com sucesso" });
   } catch (error) {
     res.status(500).json({ erro: "Erro ao excluir apólice" });
