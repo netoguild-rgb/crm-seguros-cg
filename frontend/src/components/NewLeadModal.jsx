@@ -3,6 +3,24 @@ import React, { useState } from 'react';
 import { X, Save, User, Car, Shield, FileText, FolderPlus, CheckCircle, ChevronRight } from 'lucide-react';
 import { createLead } from '../services/api';
 
+// Componente Input FORA do NewLeadModal para evitar perda de foco
+const FormInput = ({ label, name, type = "text", placeholder, required = false, value, onChange }) => (
+  <div className="flex flex-col gap-1.5 mb-3">
+    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide flex items-center gap-1">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <input
+      required={required}
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none transition-all bg-white dark:bg-slate-700 text-slate-800 dark:text-white hover:border-slate-300 dark:hover:border-slate-500 shadow-sm placeholder-slate-400 dark:placeholder-slate-400"
+    />
+  </div>
+);
+
 const NewLeadModal = ({ onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('pessoal');
@@ -53,23 +71,6 @@ const NewLeadModal = ({ onClose, onSuccess }) => {
     }
   };
 
-  const Input = ({ label, name, type = "text", placeholder, required = false }) => (
-    <div className="flex flex-col gap-1.5 mb-3">
-      <label className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center gap-1">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <input
-        required={required}
-        type={type}
-        name={name}
-        value={formData[name]}
-        onChange={handleChange}
-        placeholder={placeholder}
-        className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none transition-all bg-white text-slate-800 hover:border-slate-300 shadow-sm"
-      />
-    </div>
-  );
-
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
@@ -109,10 +110,10 @@ const NewLeadModal = ({ onClose, onSuccess }) => {
                   <button
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${isActive
-                        ? 'bg-gradient-to-r from-crm-500 to-accent-purple text-white shadow-lg'
-                        : isCompleted
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                      ? 'bg-gradient-to-r from-crm-500 to-accent-purple text-white shadow-lg'
+                      : isCompleted
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                       }`}
                   >
                     {isCompleted ? (
@@ -138,28 +139,28 @@ const NewLeadModal = ({ onClose, onSuccess }) => {
           {activeTab === 'pessoal' && (
             <div className="glass-card p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
               <div className="sm:col-span-2">
-                <Input label="Nome Completo" name="nome" placeholder="Ex: João da Silva" required />
+                <FormInput label="Nome Completo" name="nome" placeholder="Ex: João da Silva" required value={formData.nome} onChange={handleChange} />
               </div>
-              <Input label="WhatsApp" name="whatsapp" placeholder="Ex: 83999999999" required />
-              <Input label="E-mail" name="email" type="email" placeholder="email@exemplo.com" />
-              <Input label="CPF" name="cpf" placeholder="000.000.000-00" />
-              <Input label="Profissão" name="profissao" placeholder="Ex: Empresário" />
+              <FormInput label="WhatsApp" name="whatsapp" placeholder="Ex: 83999999999" required value={formData.whatsapp} onChange={handleChange} />
+              <FormInput label="E-mail" name="email" type="email" placeholder="email@exemplo.com" value={formData.email} onChange={handleChange} />
+              <FormInput label="CPF" name="cpf" placeholder="000.000.000-00" value={formData.cpf} onChange={handleChange} />
+              <FormInput label="Profissão" name="profissao" placeholder="Ex: Empresário" value={formData.profissao} onChange={handleChange} />
             </div>
           )}
 
           {activeTab === 'veiculo' && (
             <div className="glass-card p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
-              <Input label="Modelo do Veículo" name="modelo_veiculo" placeholder="Ex: Honda Civic 2023" />
-              <Input label="Placa" name="placa" placeholder="ABC-1234" />
-              <Input label="Ano do Veículo" name="ano_do_veiculo" placeholder="2023" />
-              <Input label="Renavam" name="renavan" placeholder="00000000000" />
+              <FormInput label="Modelo do Veículo" name="modelo_veiculo" placeholder="Ex: Honda Civic 2023" value={formData.modelo_veiculo} onChange={handleChange} />
+              <FormInput label="Placa" name="placa" placeholder="ABC-1234" value={formData.placa} onChange={handleChange} />
+              <FormInput label="Ano do Veículo" name="ano_do_veiculo" placeholder="2023" value={formData.ano_do_veiculo} onChange={handleChange} />
+              <FormInput label="Renavam" name="renavan" placeholder="00000000000" value={formData.renavan} onChange={handleChange} />
               <div className="sm:col-span-2 flex flex-col gap-1.5 mb-3">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Uso do Veículo</label>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Uso do Veículo</label>
                 <select
                   name="uso_veiculo"
                   value={formData.uso_veiculo}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none cursor-pointer hover:border-slate-300 shadow-sm transition-all"
+                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-500 shadow-sm transition-all"
                 >
                   <option value="">Selecione...</option>
                   <option value="Passeio">Passeio</option>
@@ -173,12 +174,12 @@ const NewLeadModal = ({ onClose, onSuccess }) => {
           {activeTab === 'seguro' && (
             <div className="glass-card p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
               <div className="sm:col-span-2 flex flex-col gap-1.5 mb-3">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Tipo de Seguro</label>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Tipo de Seguro</label>
                 <select
                   name="tipo_seguro"
                   value={formData.tipo_seguro}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white font-bold text-crm-600 focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none cursor-pointer hover:border-slate-300 shadow-sm transition-all"
+                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 font-bold text-crm-600 dark:text-crm-400 focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-500 shadow-sm transition-all"
                 >
                   <option value="Seguro Auto">🚗 Seguro Auto</option>
                   <option value="Seguro Moto">🏍️ Seguro Moto</option>
@@ -187,26 +188,26 @@ const NewLeadModal = ({ onClose, onSuccess }) => {
                   <option value="Residencial">🏠 Residencial</option>
                 </select>
               </div>
-              <Input label="Cobertura Terceiros (R$)" name="cobertura_terceiros" placeholder="Ex: R$ 100.000" />
-              <Input label="Cobertura Roubo" name="cobertura_roubo" placeholder="Sim/Não" />
+              <FormInput label="Cobertura Terceiros (R$)" name="cobertura_terceiros" placeholder="Ex: R$ 100.000" value={formData.cobertura_terceiros} onChange={handleChange} />
+              <FormInput label="Cobertura Roubo" name="cobertura_roubo" placeholder="Sim/Não" value={formData.cobertura_roubo} onChange={handleChange} />
             </div>
           )}
 
           {activeTab === 'extra' && (
             <div className="space-y-4 animate-fade-in">
               <div className="glass-card p-5 rounded-2xl">
-                <h4 className="font-bold text-slate-700 text-sm mb-4 flex items-center gap-2">
+                <h4 className="font-bold text-slate-700 dark:text-slate-200 text-sm mb-4 flex items-center gap-2">
                   <FolderPlus size={18} className="text-crm-500" /> Link Externo (Drive/Dropbox)
                 </h4>
-                <Input name="link_pasta" placeholder="https://drive.google.com/..." />
+                <FormInput name="link_pasta" label="URL" placeholder="https://drive.google.com/..." value={formData.link_pasta} onChange={handleChange} />
               </div>
               <div className="glass-card p-5 rounded-2xl">
-                <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Observações Finais</label>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 block">Observações Finais</label>
                 <textarea
                   name="obs_final"
                   value={formData.obs_final}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none h-28 resize-none hover:border-slate-300 shadow-sm transition-all"
+                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-crm-500/50 focus:border-crm-500 outline-none h-28 resize-none hover:border-slate-300 dark:hover:border-slate-500 shadow-sm transition-all placeholder-slate-400"
                   placeholder="Detalhes adicionais sobre o lead..."
                 />
               </div>
