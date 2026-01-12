@@ -14,6 +14,7 @@ import InboxPage from './components/InboxPage';
 import MarketingPage from './components/MarketingPage';
 import ServicesPage from './components/ServicesPage';
 import PoliciesPage from './components/PoliciesPage';
+import LeadsManagementPage from './components/LeadsManagementPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import PricingPage from './components/PricingPage';
@@ -243,7 +244,7 @@ function CRMContent() {
           {/* Menu */}
           <nav className="flex-1 py-6 px-2 space-y-1 overflow-y-auto">
             <MenuItem icon={LayoutDashboard} label="Visão Geral" active={view === 'kanban'} onClick={() => setView('kanban')} collapsed={!sidebarOpen} />
-            <MenuItem icon={Users} label="Lista de Leads" active={view === 'list'} onClick={() => setView('list')} collapsed={!sidebarOpen} />
+            <MenuItem icon={Users} label="Gestão de Leads" active={view === 'leads'} onClick={() => setView('leads')} collapsed={!sidebarOpen} />
             <MenuItem icon={Inbox} label="Inbox" active={view === 'inbox'} onClick={() => setView('inbox')} collapsed={!sidebarOpen} />
 
             {/* Divider */}
@@ -551,6 +552,18 @@ function CRMContent() {
           {view === 'templates-marketplace' && <TemplatesMarketplacePage onBack={() => setView('marketing')} initialCategory={marketplaceCategory} />}
           {view === 'services' && <ServicesPage />}
           {view === 'policies' && <PoliciesPage onNavigateToPricing={() => setView('pricing')} />}
+          {view === 'leads' && (
+            <LeadsManagementPage
+              leads={leads}
+              loading={loading}
+              onOpenLead={setSelectedLead}
+              onNewLead={() => setIsNewLeadModalOpen(true)}
+              onDeleteLead={handleDeleteLead}
+              onWhatsApp={(selectedLeads) => { setSelectedLeadsIds(selectedLeads.map(l => l.id)); setIsWhatsAppModalOpen(true); }}
+              onExportPDF={(selectedLeads) => selectedLeads.forEach(lead => quickPdf(lead))}
+              onRefresh={fetchLeads}
+            />
+          )}
         </div>
       </main >
 
